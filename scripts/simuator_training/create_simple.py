@@ -1,19 +1,5 @@
-# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
-# All rights reserved.
-#
-# SPDX-License-Identifier: BSD-3-Clause
-
-"""
-This script demonstrates how to run IsaacSim via the AppLauncher
-
-.. code-block:: bash
-
-    # Usage
-    ./isaaclab.sh -p scripts/tutorials/00_sim/launch_app.py
-
-"""
-
-"""Launch Isaac Sim Simulator first."""
+## Laura's training script for IsaacLab
+## Creates a simple scene with a fume hood in it 
 
 
 import argparse
@@ -21,9 +7,9 @@ import argparse
 from isaaclab.app import AppLauncher
 
 # create argparser
-parser = argparse.ArgumentParser(description="Tutorial on running IsaacSim via the AppLauncher.")
-parser.add_argument("--size", type=float, default=1.0, help="Side-length of cuboid")
-# SimulationApp arguments https://docs.omniverse.nvidia.com/py/isaacsim/source/isaacsim.simulation_app/docs/index.html?highlight=simulationapp#isaacsim.simulation_app.SimulationApp
+parser = argparse.ArgumentParser(description="Running IsaacSim via the AppLauncher.")
+
+
 parser.add_argument(
     "--width", type=int, default=1280, help="Width of the viewport and generated images. Defaults to 1280"
 )
@@ -57,17 +43,11 @@ def design_scene():
     )
     cfg_light_distant.func("/World/lightDistant", cfg_light_distant, translation=(1, 0, 10))
 
-    # spawn a cuboid
-    cfg_cuboid = sim_utils.CuboidCfg(
-        size=[args_cli.size] * 3,
-        visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 1.0, 1.0)),
-    )
-    # Spawn cuboid, altering translation on the z-axis to scale to its size
-   ## cfg_cuboid.func("/World/Object", cfg_cuboid, translation=(0.0, 0.0, args_cli.size / 2))
+    ## light the inside of the fume hood
 
+    ## spawns the custom fume hood  
     cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/fume_hood_open.usd")
-    
-    cfg.func("/World/Objects/Fumehood", cfg, translation=(0.0, 0.0, 0.0))
+    cfg.func("/World/Objects/Fumehood", cfg, translation=(0.0, 0.0, 0.05))
 
 def main():
     """Main function."""

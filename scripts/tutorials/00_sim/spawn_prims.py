@@ -51,7 +51,7 @@ def design_scene():
     cfg_light_distant.func("/World/lightDistant", cfg_light_distant, translation=(1, 0, 10))
 
     # create a new xform prim for all objects to be spawned under
-    prim_utils.create_prim("/World/Objects", "Xform")
+    prim_utils.create_prim("/World/Objects", "Xform") # xform is the transform prim 
     # spawn a red cone
     cfg_cone = sim_utils.ConeCfg(
         radius=0.15,
@@ -84,8 +84,9 @@ def design_scene():
     cfg_cuboid_deformable.func("/World/Objects/CuboidDeformable", cfg_cuboid_deformable, translation=(0.15, 0.0, 2.0))
 
     # spawn a usd file of a table into the scene
-    cfg = sim_utils.UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd")
-    cfg.func("/World/Objects/Table", cfg, translation=(0.0, 0.0, 1.05))
+   # cfg = sim_utils.UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd")
+    cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/fume_hood_open.usd")
+    cfg.func("/World/Objects/Fumehood", cfg, translation=(0.0, 0.0, 1.05))
 
 
 def main():
