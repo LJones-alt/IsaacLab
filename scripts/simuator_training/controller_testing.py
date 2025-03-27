@@ -45,15 +45,10 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 # Pre-defined configs
 ##
 # isort: off
-from isaaclab_assets import (
-    FRANKA_PANDA_CFG,
-    UR10_CFG,
-    KINOVA_JACO2_N7S300_CFG,
-    KINOVA_JACO2_N6S300_CFG,
-    KINOVA_GEN3_N7_CFG,
-    SAWYER_CFG,
-)
-
+from isaaclab_assets import FRANKA_PANDA_CFG
+from isaaclab.controllers import DifferentialIKController, DifferentialIKControllerCfg
+from isaaclab.markers import VisualizationMarkers
+from isaaclab.markers.config import FRAME_MARKER_CFG
 # isort: on
 
 
@@ -85,19 +80,19 @@ def design_scene() -> tuple[dict, list[list[float]]]:
     # Each group will have a mount and a robot on top of it
     origins = define_origins(num_origins=1, spacing=2.0)
 
-    # Origin 1 with Franka Panda
+      # Origin 1 with Franka Panda
     prim_utils.create_prim("/World/Origin1", "Xform", translation=origins[0])
     # -- Table
-    cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/fume_hood_open.usd")
-    cfg.func("/World/Objects/Fumehood", cfg, translation=(0.0, 0.0, 0.0))
+    cfg = sim_utils.UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd")
+    cfg.func("/World/Origin1/Table", cfg, translation=(0.55, 0.0, 1.05))
     # -- Robot
     franka_arm_cfg = FRANKA_PANDA_CFG.replace(prim_path="/World/Origin1/Robot")
-    franka_arm_cfg.init_state.pos = (0.2, 0.2, 0.91)
+    franka_arm_cfg.init_state.pos = (0.0, 0.0, 1.05)
     franka_panda = Articulation(cfg=franka_arm_cfg)
     # -- glass beaker 
     #prim_utils.create_prim("World/Origin2", "Xform", translation=(0.0,0.0,0.0))
-    #beaker_cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/beaker_500ml.usd")
-    ##eaker_cfg.func("/World/Objects/Beaker", beaker_cfg, translation=(0.3, 0.3, 0.91))
+    beaker_cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/glass_beaker.usd")
+    beaker_cfg.func("/World/Objects/Beaker", beaker_cfg, translation=(0.3, 0.0, 1.05))
 
 
     # return the scene information
@@ -113,6 +108,18 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articula
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
     count = 0
+     # Create controller
+    diff_ik_cfg = DifferentialIKControllerCfg(command_type="pose", use_relative_mode=False, ik_method="dls")
+    diff_ik_controller = DifferentialIKController(diff_ik_cfg, num_envs=1, device=sim.device)
+
+    robot=entities["franka_panda"]
+
+     # Markers
+    frame_marker_cfg = FRAME_MARKER_CFG.copy()
+    frame_marker_cfg.markers["frame"].scale = (0.1, 0.1, 0.1)
+    ee_marker = VisualizationMarkers(frame_marker_cfg.replace(prim_path="/Visuals/ee_current"))
+    goal_marker = VisualizationMarkers(frame_marker_cfg.replace(prim_path="/Visuals/ee_goal"))
+
     # Simulate physics
     while simulation_app.is_running():
         # reset

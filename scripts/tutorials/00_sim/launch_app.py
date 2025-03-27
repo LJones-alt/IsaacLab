@@ -63,11 +63,12 @@ def design_scene():
         visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 1.0, 1.0)),
     )
     # Spawn cuboid, altering translation on the z-axis to scale to its size
-   ## cfg_cuboid.func("/World/Object", cfg_cuboid, translation=(0.0, 0.0, args_cli.size / 2))
+    cfg_cuboid.func("/World/Object", cfg_cuboid, translation=(0.0, 0.0, args_cli.size / 2))
 
-    cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/fume_hood_open.usd")
+    cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/glass_beaker.usd")
     
-    cfg.func("/World/Objects/Fumehood", cfg, translation=(0.0, 0.0, 0.0))
+    
+    cfg.func("/World/Objects/beaker", cfg, translation=(0.0, 0.0, 0.0))
 
 def main():
     """Main function."""
