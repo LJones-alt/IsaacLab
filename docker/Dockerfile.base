@@ -33,7 +33,7 @@ ENV DOCKER_USER_HOME=${DOCKER_USER_HOME_ARG}
 # Set environment variables
 ENV LANG=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
-
+ENV NVIDIA_DRIVER_CAPABILITIES=all
 USER root
 
 # Install dependencies and remove cache
