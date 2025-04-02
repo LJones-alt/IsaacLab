@@ -34,11 +34,12 @@ from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
 from isaaclab.sim import SimulationContext
 from isaaclab.utils import configclass
 #from isaaclab_tasks.manager_based.manipulation.stack.stack_env_cfg import ObjectTableSceneCfg
+from isaaclab_tasks.manager_based.classic.cartpole.cartpole_env_cfg import CartpoleSceneCfg
 
 #setup the scene config
 @configclass
 class ActionsCfg:
-    joint_efforts = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["panda_joint.*"], scale=5.0)
+    joint_efforts = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["slider_to_cart"], scale=5.0)
 
 @configclass
 class ObservationsCfg:
@@ -71,7 +72,7 @@ class EventCfg:
         func=mdp.reset_joints_by_offset,
         mode="reset",
         params={
-            "asset_cfg": SceneEntityCfg("robot", joint_names=["panda_joint.*"]),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=["slider_to_cart"]),
             "position_range": (-1.0, 1.0),
             "velocity_range": (-0.1, 0.1),
         },
@@ -90,34 +91,6 @@ class EventCfg:
 from isaaclab_assets import FRANKA_PANDA_HIGH_PD_CFG
 from isaaclab.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
-
-
-
-"""def main():
-    env_cfg = FrankaEnvCfg()
-    env_cfg.scene.num_envs = 1
-    env_cfg.sim.device = args_cli.device
-    env = ManagerBasedEnv(cfg = env_cfg)
-
-    #physics 
-    count = 0
-    while simulation_app.is_running():
-        with torch.inference_mode():
-            # reset
-            if count % 300 == 0:
-                count = 0
-                env.reset()
-                print("-" * 80)
-                print("[INFO]: Resetting environment...")
-            # sample random actions
-            joint_efforts = torch.randn_like(env.action_manager.action)
-            # step the environment
-            obs, _ = env.step(joint_efforts)
-            # print current orientation of pole
-            print("[Env 0]: Pole joint: ", obs["policy"][0][1].item())
-            # update counter
-            count += 1
-    env.close()"""
 
 #unused
 @configclass
@@ -151,11 +124,16 @@ class RobotSceneCgf(InteractiveSceneCfg):
     )
     #articulation
     frankaPanda: ArticulationCfg = FRANKA_PANDA_HIGH_PD_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    
+   
+
+
 
 #Class manager
 @configclass
 class FrankaEnvCfg(ManagerBasedEnvCfg):
-    scene = RobotSceneCgf(num_envs = 1, env_spacing = 1.0)
+    #scene = RobotSceneCgf(num_envs = 1, env_spacing = 1.0)
+    scene = CartpoleSceneCfg(num_envs=5, env_spacing=3)
     observations = ObservationsCfg()
     actions = ActionsCfg()
     events = EventCfg()
@@ -198,19 +176,46 @@ def run_sim(sim: sim_utils.SimulationContext, scene: InteractiveScene):
         count +=1
         scene.update(sim_dt)
 
+# def main():
+#     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
+#     sim = SimulationContext(sim_cfg)
+
+#     #camera
+#     sim.set_camera_view([0.0, 0.0, 4.0], [0.0, 0.0, 2.0])
+
+#     #scene design
+#     scene_cfg = RobotSceneCgf(num_envs=args_cli.num_envs, env_spacing=3.0)
+#     scene = InteractiveScene(scene_cfg)
+#     sim.reset()
+#     print(f"[INFO]: Setup comeplete...")
+#     run_sim(sim, scene) 
+
 def main():
-    sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
-    sim = SimulationContext(sim_cfg)
+    env_cfg = FrankaEnvCfg()
+    env_cfg.scene.num_envs = 2
+    env_cfg.sim.device = args_cli.device
+    env = ManagerBasedEnv(cfg = env_cfg)
 
-    #camera
-    sim.set_camera_view([0.0, 0.0, 4.0], [0.0, 0.0, 2.0])
+    #physics 
+    count = 0
+    while simulation_app.is_running():
+        with torch.inference_mode():
+            # reset
+            if count % 300 == 0:
+                count = 0
+                env.reset()
+                print("-" * 80)
+                print("[INFO]: Resetting environment...")
+            # sample random actions
+            joint_efforts = torch.randn_like(env.action_manager.action)
+            # step the environment
+            obs, _ = env.step(joint_efforts)
+            # print current orientation of pole
+            print("[Env 0]: Pole joint: ", obs["policy"][0][1].item())
+            # update counter
+            count += 1
+    env.close()
 
-    #scene design
-    scene_cfg = RobotSceneCgf(num_envs=args_cli.num_envs, env_spacing=3.0)
-    scene = InteractiveScene(scene_cfg)
-    sim.reset()
-    print(f"[INFO]: Setup comeplete...")
-    run_sim(sim, scene) 
 
 if __name__=="__main__":
     main()
