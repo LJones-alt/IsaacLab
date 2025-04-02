@@ -60,6 +60,7 @@ x-default-isaac-lab-volumes: &default-isaac-lab-volumes
   - type: volume
     source: isaac-lab-data
     target: ${DOCKER_ISAACLAB_PATH}/data_storage
+    # pull in nvoptix 
   - type: bind
     source: /usr/share/nvidia/nvoptix.bin
     target: /usr/share/nvidia/nvoptix.bin
