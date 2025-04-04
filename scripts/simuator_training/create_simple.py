@@ -85,18 +85,18 @@ def design_scene() -> tuple[dict, list[list[float]]]:
     # Each group will have a mount and a robot on top of it
     origins = define_origins(num_origins=1, spacing=2.0)
 
-    # Origin 1 with Franka Panda
-    prim_utils.create_prim("/World/Origin1", "Xform", translation=origins[0])
+    # # Origin 1 with Franka Panda
+    # prim_utils.create_prim("/World/Origin1", "Xform", translation=origins[0])
     # -- Table
-    cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/fume_hood_open.usd")
-    cfg.func("/World/Objects/Fumehood", cfg, translation=(0.0, 0.0, 0.0))
+    #cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/fume_hood_open.usd")
+    #cfg.func("/World/Objects/Fumehood", cfg, translation=(0.0, 0.0, 0.0))
     # -- Robot
     franka_arm_cfg = FRANKA_PANDA_CFG.replace(prim_path="/World/Origin1/Robot")
     franka_arm_cfg.init_state.pos = (0.2, 0.2, 0.91)
     franka_panda = Articulation(cfg=franka_arm_cfg)
-    # -- glass beaker 
-    #prim_utils.create_prim("World/Origin2", "Xform", translation=(0.0,0.0,0.0))
-    beaker_cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/glass_beaker.usd")
+   
+   # prim_utils.create_prim("World/Origin2", "Xform", translation=(0.0,0.0,0.0))
+    beaker_cfg = sim_utils.UsdFileCfg(usd_path="source/isaaclab_assets/data/Props/glassware/beaker_500ml.usd")
     beaker_cfg.func("/World/Objects/Beaker", beaker_cfg, translation=(0.3, 0.4, 1))
 
 
