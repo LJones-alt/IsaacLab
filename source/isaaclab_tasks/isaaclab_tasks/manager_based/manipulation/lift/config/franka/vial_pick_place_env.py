@@ -22,7 +22,7 @@ from isaaclab_assets.robots.franka import FRANKA_PANDA_CFG  # isort: skip
 
 
 @configclass
-class FrankaCubeLiftEnvCfg(LiftEnvCfg):
+class VialPickPlaceEnvCfg(LiftEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -40,16 +40,16 @@ class FrankaCubeLiftEnvCfg(LiftEnvCfg):
             open_command_expr={"panda_finger_.*": 0.04},
             close_command_expr={"panda_finger_.*": 0.0},
         )
+        print("[DEBUG]  Robot actions set ...")
         # Set the body name for the end effector
         self.commands.object_pose.body_name = "panda_hand"
 
-        # Set Cube as object
+        # Use vial as obejct to pick
         self.scene.object = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0, 0.055], rot=[1, 0, 0, 0]),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0.0285, 0.055], rot=[0, 1, 0, 0]),
             spawn=UsdFileCfg(
-                #usd_path=f"source/isaaclab_assets/data/Props/glassware/center_origin_beaker.usd",
-                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_20ml.usd",
+                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_20ml_centered.usd",
                 scale=(1.0, 1.0, 1.0),
                 
                 rigid_props=RigidBodyPropertiesCfg(
@@ -62,6 +62,7 @@ class FrankaCubeLiftEnvCfg(LiftEnvCfg):
                 ),
             ),
         )
+        print("[DEBUG]  Vial actions set ...")
 
         # Listens to the required transforms
         marker_cfg = FRAME_MARKER_CFG.copy()
@@ -69,7 +70,7 @@ class FrankaCubeLiftEnvCfg(LiftEnvCfg):
         marker_cfg.prim_path = "/Visuals/FrameTransformer"
         self.scene.ee_frame = FrameTransformerCfg(
             prim_path="{ENV_REGEX_NS}/Robot/panda_link0",
-            debug_vis=False,
+            debug_vis=True,
             visualizer_cfg=marker_cfg,
             target_frames=[
                 FrameTransformerCfg.FrameCfg(
@@ -84,7 +85,7 @@ class FrankaCubeLiftEnvCfg(LiftEnvCfg):
 
 
 @configclass
-class FrankaCubeLiftEnvCfg_PLAY(FrankaCubeLiftEnvCfg):
+class VialPickPlaceEnvCfg_PLAY(VialPickPlaceEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

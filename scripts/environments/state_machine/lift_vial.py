@@ -11,7 +11,7 @@ It uses the `warp` library to run the state machine in parallel on the GPU.
 
 .. code-block:: bash
 
-    ./isaaclab.sh -p scripts/environments/state_machine/lift_cube_sm.py --num_envs 32
+    ./isaaclab.sh -p scripts/environments/state_machine/lift_vial.py --num_envs 32
 
 """
 
@@ -103,69 +103,61 @@ def infer_state_machine(
     tid = wp.tid()
     # retrieve state machine state
     state = sm_state[tid]
- 
-    ##  switch on state machine !
-    match state:
-        case PickSmState.REST:
-            des_ee_pose[tid] = ee_pose[tid]
-            gripper_state[tid] = GripperState.OPEN
+    # decide next state
+    if state == PickSmState.REST:
+        des_ee_pose[tid] = ee_pose[tid]
+        gripper_state[tid] = GripperState.OPEN
+        # wait for a while
+        if sm_wait_time[tid] >= PickSmWaitTime.REST:
+            # move to next state and reset wait time
+            sm_state[tid] = PickSmState.APPROACH_ABOVE_OBJECT
+            sm_wait_time[tid] = 0.0
+    elif state == PickSmState.APPROACH_ABOVE_OBJECT:
+        des_ee_pose[tid] = wp.transform_multiply(offset[tid], object_pose[tid])
+        gripper_state[tid] = GripperState.OPEN
+        if distance_below_threshold(
+            wp.transform_get_translation(ee_pose[tid]),
+            wp.transform_get_translation(des_ee_pose[tid]),
+            position_threshold,
+        ):
             # wait for a while
-            if sm_wait_time[tid] >= PickSmWaitTime.REST:
+            if sm_wait_time[tid] >= PickSmWaitTime.APPROACH_OBJECT:
                 # move to next state and reset wait time
-                sm_state[tid] = PickSmState.APPROACH_ABOVE_OBJECT
+                sm_state[tid] = PickSmState.APPROACH_OBJECT
                 sm_wait_time[tid] = 0.0
-
-        case PickSmState.APPROACH_ABOVE_OBJECT:
-            des_ee_pose[tid] = wp.transform_multiply(offset[tid], object_pose[tid])
-            gripper_state[tid] = GripperState.OPEN
-            if distance_below_threshold(
-                wp.transform_get_translation(ee_pose[tid]),
-                wp.transform_get_translation(des_ee_pose[tid]),
-                position_threshold,
-            ):
-                # wait for a while
-                if sm_wait_time[tid] >= PickSmWaitTime.APPROACH_OBJECT:
-                    # move to next state and reset wait time
-                    sm_state[tid] = PickSmState.APPROACH_OBJECT
-                    sm_wait_time[tid] = 0.0
-
-        case PickSmState.APPROACH_OBJECT:
-            des_ee_pose[tid] = object_pose[tid]
-            gripper_state[tid] = GripperState.OPEN
-            if distance_below_threshold(
-                wp.transform_get_translation(ee_pose[tid]),
-                wp.transform_get_translation(des_ee_pose[tid]),
-                position_threshold,
-            ):
-                if sm_wait_time[tid] >= PickSmWaitTime.APPROACH_OBJECT:
-                    # move to next state and reset wait time
-                    sm_state[tid] = PickSmState.GRASP_OBJECT
-                    sm_wait_time[tid] = 0.0
-
-        case PickSmState.GRASP_OBJECT:
-            des_ee_pose[tid] = object_pose[tid]
-            gripper_state[tid] = GripperState.CLOSE
+    elif state == PickSmState.APPROACH_OBJECT:
+        des_ee_pose[tid] = object_pose[tid]
+        gripper_state[tid] = GripperState.OPEN
+        if distance_below_threshold(
+            wp.transform_get_translation(ee_pose[tid]),
+            wp.transform_get_translation(des_ee_pose[tid]),
+            position_threshold,
+        ):
+            if sm_wait_time[tid] >= PickSmWaitTime.APPROACH_OBJECT:
+                # move to next state and reset wait time
+                sm_state[tid] = PickSmState.GRASP_OBJECT
+                sm_wait_time[tid] = 0.0
+    elif state == PickSmState.GRASP_OBJECT:
+        des_ee_pose[tid] = object_pose[tid]
+        gripper_state[tid] = GripperState.CLOSE
+        # wait for a while
+        if sm_wait_time[tid] >= PickSmWaitTime.GRASP_OBJECT:
+            # move to next state and reset wait time
+            sm_state[tid] = PickSmState.LIFT_OBJECT
+            sm_wait_time[tid] = 0.0
+    elif state == PickSmState.LIFT_OBJECT:
+        des_ee_pose[tid] = des_object_pose[tid]
+        gripper_state[tid] = GripperState.CLOSE
+        if distance_below_threshold(
+            wp.transform_get_translation(ee_pose[tid]),
+            wp.transform_get_translation(des_ee_pose[tid]),
+            position_threshold,
+        ):
             # wait for a while
-            if sm_wait_time[tid] >= PickSmWaitTime.GRASP_OBJECT:
+            if sm_wait_time[tid] >= PickSmWaitTime.LIFT_OBJECT:
                 # move to next state and reset wait time
                 sm_state[tid] = PickSmState.LIFT_OBJECT
                 sm_wait_time[tid] = 0.0
-
-        case PickSmState.LIFT_OBJECT:
-            des_ee_pose[tid] = des_object_pose[tid]
-            gripper_state[tid] = GripperState.CLOSE
-            if distance_below_threshold(
-                wp.transform_get_translation(ee_pose[tid]),
-                wp.transform_get_translation(des_ee_pose[tid]),
-                position_threshold,
-            ):
-                # wait for a while
-                if sm_wait_time[tid] >= PickSmWaitTime.LIFT_OBJECT:
-                    # move to next state and reset wait time
-                    sm_state[tid] = PickSmState.LIFT_OBJECT
-                    sm_wait_time[tid] = 0.0
-        case _:
-            print(f"unknown state {state}")
     # increment wait time
     sm_wait_time[tid] = sm_wait_time[tid] + dt[tid]
 
@@ -267,13 +259,13 @@ class PickAndLiftSm:
 def main():
     # parse configuration
     env_cfg: LiftEnvCfg = parse_env_cfg(
-        "Isaac-Lift-Cube-Franka-IK-Abs-v0",
+        "Franka-IK-Abs-Vial-Pick-Place",
         device=args_cli.device,
         num_envs=args_cli.num_envs,
         use_fabric=not args_cli.disable_fabric,
     )
     # create environment
-    env = gym.make("Isaac-Lift-Cube-Franka-IK-Abs-v0", cfg=env_cfg)
+    env = gym.make("Franka-IK-Abs-Vial-Pick-Place", cfg=env_cfg)
     # reset environment at start
     env.reset()
 

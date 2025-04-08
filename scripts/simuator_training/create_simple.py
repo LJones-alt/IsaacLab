@@ -96,7 +96,7 @@ def design_scene() -> tuple[dict, list[list[float]]]:
     franka_panda = Articulation(cfg=franka_arm_cfg)
    
    # prim_utils.create_prim("World/Origin2", "Xform", translation=(0.0,0.0,0.0))
-    beaker_cfg = sim_utils.UsdFileCfg(usd_path="source/isaaclab_assets/data/Props/glassware/beaker_500ml.usd")
+    beaker_cfg = sim_utils.UsdFileCfg(usd_path="/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_20ml.usd")
     beaker_cfg.func("/World/Objects/Beaker", beaker_cfg, translation=(0.3, 0.4, 1))
 
 

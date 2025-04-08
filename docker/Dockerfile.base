@@ -99,8 +99,8 @@ RUN echo "export ISAACLAB_PATH=${ISAACLAB_PATH}" >> ${HOME}/.bashrc && \
     
  # installing nightly torch 
 # use pip caching to avoid reinstalling large packages
-RUN --mount=type=cache,target=${DOCKER_USER_HOME}/.cache/pip \
-    pip install --upgrade --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
+#RUN --mount=type=cache,target=${DOCKER_USER_HOME}/.cache/pip \
+#    pip install --upgrade --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu128
 
 # make working directory as the Isaac Lab directory
 # this is the default directory when the container is run
