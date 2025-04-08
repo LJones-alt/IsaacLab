@@ -38,6 +38,7 @@ import torch
 import isaacsim.core.utils.prims as prim_utils
 
 import isaaclab.sim as sim_utils
+
 from isaaclab.assets import Articulation
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
@@ -76,7 +77,7 @@ def design_scene() -> tuple[dict, list[list[float]]]:
     """Designs the scene."""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
-    cfg.func("/World/defaultGroundPlane", cfg)
+    cfg.func("/World/defaultGroundPlane", cfg, translation=(0, 0, -1.05))
     # Lights
     cfg = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.75, 0.75, 0.75))
     cfg.func("/World/Light", cfg)
@@ -88,16 +89,25 @@ def design_scene() -> tuple[dict, list[list[float]]]:
     # # Origin 1 with Franka Panda
     # prim_utils.create_prim("/World/Origin1", "Xform", translation=origins[0])
     # -- Table
+    # Table
+    
+    tablecfg = sim_utils.UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd")
+    tablecfg.func("/World/Objects/Table", tablecfg, translation=(0.0, 0.0, 0.0))
     #cfg = sim_utils.UsdFileCfg(usd_path="source/orbit_assets/fume_hood_open.usd")
     #cfg.func("/World/Objects/Fumehood", cfg, translation=(0.0, 0.0, 0.0))
     # -- Robot
     franka_arm_cfg = FRANKA_PANDA_CFG.replace(prim_path="/World/Origin1/Robot")
     franka_arm_cfg.init_state.pos = (0.2, 0.2, 0.91)
     franka_panda = Articulation(cfg=franka_arm_cfg)
-   
+
+
+    rack_cfg = sim_utils.UsdFileCfg(usd_path="/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_8_rack.usd")
+    rack_cfg.func("/World/Objects/rack", rack_cfg, translation=(0.3, 0.4, 1))
+
+
    # prim_utils.create_prim("World/Origin2", "Xform", translation=(0.0,0.0,0.0))
     beaker_cfg = sim_utils.UsdFileCfg(usd_path="/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_20ml.usd")
-    beaker_cfg.func("/World/Objects/Beaker", beaker_cfg, translation=(0.3, 0.4, 1))
+    beaker_cfg.func("/World/Objects/Beaker", beaker_cfg, translation=(0.1, 0.4, 1))
 
 
     # return the scene information
@@ -157,10 +167,14 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articula
 def main():
     """Main function."""
     # Initialize the simulation context
+   
+    
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)
+    sim = sim_utils.RenderCfg(antialiasing_mode="DLAA", enable_dl_denoiser = True)
     # Set main camera
     sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
+    
     # design scene
     scene_entities, scene_origins = design_scene()
     scene_origins = torch.tensor(scene_origins, device=sim.device)

@@ -44,6 +44,8 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
         # Set the body name for the end effector
         self.commands.object_pose.body_name = "panda_hand"
 
+        
+
         # Use vial as obejct to pick
         self.scene.object = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object",
@@ -63,6 +65,7 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
             ),
         )
         print("[DEBUG]  Vial actions set ...")
+       
 
         # Listens to the required transforms
         marker_cfg = FRAME_MARKER_CFG.copy()

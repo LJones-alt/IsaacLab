@@ -26,11 +26,17 @@ parser = argparse.ArgumentParser(description="Pick and lift state machine for li
 parser.add_argument(
     "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
 )
+parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
+parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
+parser.add_argument("--video_interval", type=int, default=2000, help="Interval between video recordings (in steps).")
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 # parse the arguments
 args_cli = parser.parse_args()
+if args_cli.video:
+    args_cli.enable_cameras = True
+
 
 # launch omniverse app
 app_launcher = AppLauncher(headless=args_cli.headless)
@@ -264,11 +270,22 @@ def main():
         num_envs=args_cli.num_envs,
         use_fabric=not args_cli.disable_fabric,
     )
+    
+        
     # create environment
-    env = gym.make("Franka-IK-Abs-Vial-Pick-Place", cfg=env_cfg)
+    env = gym.make("Franka-IK-Abs-Vial-Pick-Place", cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+   
     # reset environment at start
     env.reset()
-
+    if args_cli.video:
+        video_kwargs = {
+            "video_folder": "scripts/environments/state_machine/new_videos",
+            "step_trigger": lambda step: step % args_cli.video_interval == 0,
+            "video_length": args_cli.video_length,
+            "disable_logger": True,
+        }
+        print("[INFO] Recording videos during training.")
+        env = gym.wrappers.RecordVideo(env, **video_kwargs)
     # create action buffers (position + quaternion)
     actions = torch.zeros(env.unwrapped.action_space.shape, device=env.unwrapped.device)
     actions[:, 3] = 1.0
