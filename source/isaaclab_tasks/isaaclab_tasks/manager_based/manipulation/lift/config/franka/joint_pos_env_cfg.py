@@ -48,12 +48,10 @@ class FrankaCubeLiftEnvCfg(LiftEnvCfg):
             prim_path="{ENV_REGEX_NS}/Object",
             init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0, 0.055], rot=[1, 0, 0, 0]),
             spawn=UsdFileCfg(
-                #usd_path=f"source/isaaclab_assets/data/Props/glassware/center_origin_beaker.usd",
-                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_20ml.usd",
-                scale=(1.0, 1.0, 1.0),
-                
+                usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Blocks/DexCube/dex_cube_instanceable.usd",
+                scale=(0.8, 0.8, 0.8),
                 rigid_props=RigidBodyPropertiesCfg(
-                    solver_position_iteration_count=24,
+                    solver_position_iteration_count=16,
                     solver_velocity_iteration_count=1,
                     max_angular_velocity=1000.0,
                     max_linear_velocity=1000.0,
