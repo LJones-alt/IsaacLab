@@ -3,9 +3,18 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from isaaclab.controllers.differential_ik_cfg import DifferentialIKControllerCfg
-from isaaclab.envs.mdp.actions.actions_cfg import DifferentialInverseKinematicsActionCfg
+from isaaclab.assets import DeformableObjectCfg
+from isaaclab.controllers.operational_space_cfg import OperationalSpaceControllerCfg
+from isaaclab.envs.mdp.actions.actions_cfg import OperationalSpaceControllerActionCfg
+
+from isaaclab.managers import EventTermCfg as EventTerm
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.sim.spawners import UsdFileCfg
 from isaaclab.utils import configclass
+from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
+
+import isaaclab_tasks.manager_based.manipulation.lift.mdp as mdp
+
 from . import vial_pick_place_env
 
 ##
@@ -30,12 +39,12 @@ class VialPickPlaceEnvCfg(vial_pick_place_env.VialPickPlaceEnvCfg):
         self.scene.robot = FRANKA_PANDA_HIGH_PD_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
         # Set actions for the specific robot type (franka)
-        self.actions.arm_action = DifferentialInverseKinematicsActionCfg(
+        self.actions.arm_action = OperationalSpaceControllerActionCfg(
             asset_name="robot",
             joint_names=["panda_joint.*"],
             body_name="panda_hand",
-            controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=True, ik_method="pinv"),
-            body_offset=DifferentialInverseKinematicsActionCfg.OffsetCfg(pos=[0.0, 0.0, 0.107]),
+            controller=OperationalSpaceControllerCfg(command_type="pose", use_relative_mode=False, ik_method="dls"),
+            body_offset=OperationalSpaceControllerCfg.OffsetCfg(pos=[0.0, 0.0, 0.107]),
         )
 
 
@@ -51,4 +60,8 @@ class VialPickPlaceEnvCfg_PLAY(VialPickPlaceEnvCfg):
         # disable randomization for play
         self.observations.policy.enable_corruption = False
 
+
+##
+# Deformable object lift environment.
+##
 

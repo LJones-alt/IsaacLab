@@ -107,15 +107,15 @@ def distance_below_threshold(current_pos: wp.vec3, desired_pos: wp.vec3, thresho
 
 @wp.kernel
 def infer_state_machine(
-    dt: wp.array(dtype=float),
-    sm_state: wp.array(dtype=int),
-    sm_wait_time: wp.array(dtype=float),
-    ee_pose: wp.array(dtype=wp.transform),
-    object_pose: wp.array(dtype=wp.transform),
-    des_object_pose: wp.array(dtype=wp.transform),
-    des_ee_pose: wp.array(dtype=wp.transform),
-    gripper_state: wp.array(dtype=float),
-    offset: wp.array(dtype=wp.transform),
+    dt: wp.array(dtype=float), # type: ignore
+    sm_state: wp.array(dtype=int), # type: ignore
+    sm_wait_time: wp.array(dtype=float), # type: ignore
+    ee_pose: wp.array(dtype=wp.transform), # type: ignore
+    object_pose: wp.array(dtype=wp.transform), # type: ignore
+    des_object_pose: wp.array(dtype=wp.transform), # type: ignore
+    des_ee_pose: wp.array(dtype=wp.transform), # type: ignore
+    gripper_state: wp.array(dtype=float), # type: ignore
+    offset: wp.array(dtype=wp.transform), # type: ignore
     position_threshold: float,
 ):
     # retrieve thread id
@@ -286,13 +286,13 @@ def main():
     
         
     # create environment
-    env = gym.make("Franka-IK-Abs-Vial-Pick-Place", cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+    env = gym.make("Franka-IK-Abs-Vial-Pick-Place", cfg=env_cfg, render_mode="rgb_array" )
    
     # reset environment at start
     env.reset()
     if args_cli.video:
         video_kwargs = {
-            "video_folder": "scripts/environments/state_machine/new_videos",
+            "video_folder": "scripts/environments/state_machine/ik/svd",
             "step_trigger": lambda step: step % args_cli.video_interval == 0,
             "video_length": args_cli.video_length,
             "disable_logger": True,
