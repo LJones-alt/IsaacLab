@@ -42,7 +42,7 @@ class VialPickPlaceEnvCfg(vial_pick_place_env.VialPickPlaceEnvCfg):
             asset_name="robot",
             joint_names=["panda_joint.*"],
             body_name="panda_hand",
-            controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=False, ik_method="trans"),
+            controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=False, ik_method="dls"),
             body_offset=DifferentialInverseKinematicsActionCfg.OffsetCfg(pos=[0.0, 0.0, 0.107]),
         )
 
@@ -64,48 +64,3 @@ class VialPickPlaceEnvCfg_PLAY(VialPickPlaceEnvCfg):
 # Deformable object lift environment.
 ##
 
-
-@configclass
-class FrankaTeddyBearLiftEnvCfg(VialPickPlaceEnvCfg):
-    def __post_init__(self):
-        # post init of parent
-        super().__post_init__()
-
-        self.scene.object = DeformableObjectCfg(
-            prim_path="{ENV_REGEX_NS}/Object",
-            init_state=DeformableObjectCfg.InitialStateCfg(pos=(0.5, 0, 0.05), rot=(0.707, 0, 0, 0.707)),
-            spawn=UsdFileCfg(
-                usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Objects/Teddy_Bear/teddy_bear.usd",
-                scale=(0.01, 0.01, 0.01),
-            ),
-        )
-
-        # Make the end effector less stiff to not hurt the poor teddy bear
-        self.scene.robot.actuators["panda_hand"].effort_limit = 50.0
-        self.scene.robot.actuators["panda_hand"].stiffness = 40.0
-        self.scene.robot.actuators["panda_hand"].damping = 10.0
-
-        # Disable replicate physics as it doesn't work for deformable objects
-        # FIXME: This should be fixed by the PhysX replication system.
-        self.scene.replicate_physics = False
-
-        # Set events for the specific object type (deformable cube)
-        self.events.reset_object_position = EventTerm(
-            func=mdp.reset_nodal_state_uniform,
-            mode="reset",
-            params={
-                "position_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
-                "velocity_range": {},
-                "asset_cfg": SceneEntityCfg("object"),
-            },
-        )
-
-        # Remove all the terms for the state machine demo
-        # TODO: Computing the root pose of deformable object from nodal positions is expensive.
-        #       We need to fix that part before enabling these terms for the training.
-        self.terminations.object_dropping = None
-        self.rewards.reaching_object = None
-        self.rewards.lifting_object = None
-        self.rewards.object_goal_tracking = None
-        self.rewards.object_goal_tracking_fine_grained = None
-        self.observations.policy.object_position = None

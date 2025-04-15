@@ -7,7 +7,8 @@ from dataclasses import MISSING
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg, DeformableObjectCfg, RigidObjectCfg
-from isaaclab.envs import ManagerBasedRLEnvCfg
+from isaaclab.envs import ManagerBasedRLEnvCfg, ManagerBasedRLEnv
+from isaaclab.envs.mdp.observations import root_pos_w
 from isaaclab.managers import CurriculumTermCfg as CurrTerm
 from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
@@ -20,6 +21,8 @@ from isaaclab.sensors.frame_transformer.frame_transformer_cfg import FrameTransf
 from isaaclab.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
+
+from tensorflow.keras.backend import eval
 
 from . import mdp
 
@@ -49,14 +52,6 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         spawn=UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd"),
     )
 
-    # # Vial Rack 
-    # rack = AssetBaseCfg(
-    #     prim_path="{ENV_REGEX_NS}/Rack",
-    #     init_state=AssetBaseCfg.InitialStateCfg(pos=[0.5, 0, 0], rot=[0.707, 0, 0, 0.707]),
-    #     spawn=UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd"),
-
-    # )
-
     # plane
     plane = AssetBaseCfg(
         prim_path="/World/GroundPlane",
@@ -80,16 +75,36 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 @configclass
 class CommandsCfg:
     """Command terms for the MDP."""
+    ## THESE ARE THE GOAL POSES
+    # object_pose = mdp.UniformPoseCommandCfg(
+    #     asset_name="robot",
+    #     body_name=MISSING,  # will be set by agent env cfg
+    #     resampling_time_range=(5.0, 5.0),
+    #     debug_vis=True,
+    #     ranges=mdp.UniformPoseCommandCfg.Ranges(
+    #         pos_x=(0.4, 0.6), pos_y=(-0.5, 0.5), pos_z=(0.0, 0.1), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
+    #     ),
+    # )
 
-    object_pose = mdp.UniformPoseCommandCfg(
+    rack_pose = mdp.UniformPoseCommandCfg(
         asset_name="robot",
         body_name=MISSING,  # will be set by agent env cfg
         resampling_time_range=(5.0, 5.0),
         debug_vis=True,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
-            pos_x=(0.4, 0.6), pos_y=(-0.25, 0.25), pos_z=(0.25, 0.5), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
+            pos_x=(0.2, 1.0), pos_y=(-0.4, 0.4), pos_z=(0.0, 0.0), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
         ),
     )
+    object_pose = rack_pose
+    # mdp.UniformPoseCommandCfg(
+    #     asset_name="robot",
+    #     body_name=MISSING,  # will be set by agent env cfg
+    #     resampling_time_range=(5.0, 5.0),
+    #     debug_vis=True,
+    #     ranges=mdp.UniformPoseCommandCfg.Ranges(
+    #         pos_x=(0.4, 0.6), pos_y=(-0.5, 0.5), pos_z=(0.0, 0.1), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
+    #     ),
+    # )
 
 
 @configclass
@@ -112,6 +127,9 @@ class ObservationsCfg:
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)
+        rack_position = ObsTerm(func=mdp.rack_position_in_robot_root_frame)
+        print(f"[INFO] : ENV CONFIG Object position {object_position}")
+        #rack_position = ObsTerm(func=mdp.object_position_in_robot_root_frame(env=self.env , object_cfg="rack"))
         target_object_position = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
         actions = ObsTerm(func=mdp.last_action)
 
@@ -125,15 +143,28 @@ class ObservationsCfg:
 
 @configclass
 class EventCfg:
+    
     """Configuration for events."""
-
+    # THIS SETS THE STARTING POSITONS 
     reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
+    get_rack_position =EventTerm(
+        func=mdp.reset_root_state_uniform,
+        mode="reset",
+        params={
+            "pose_range": {"x": (-0.3, -0.3), "y": (-0.25, -0.25), "z": (0.0, 0.0)},
+            "velocity_range": {},
+            "asset_cfg": SceneEntityCfg("rack", body_names="Rack"),
+        },
+    )
+    # rack_pos = root_pos_w(ManagerBasedRLEnv, SceneEntityCfg("rack", body_names="Rack"))
+    
+    
 
     reset_object_position = EventTerm(
         func=mdp.reset_root_state_uniform,
         mode="reset",
         params={
-            "pose_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
+            "pose_range": {"x": (-0.318, -0.318), "y": (-0.268, -0.268), "z": (0.01, 0.01)},
             "velocity_range": {},
             "asset_cfg": SceneEntityCfg("object", body_names="Object"),
         },

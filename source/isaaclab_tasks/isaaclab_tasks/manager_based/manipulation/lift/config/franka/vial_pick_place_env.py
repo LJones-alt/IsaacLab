@@ -26,10 +26,13 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
+        self.rack_pos = [0.5, 0, 0]
+        self.vial_offset = self.rack_pos #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
+        self.rack_rot =[0.707, 0, 0, 0.707]
 
         # Set Franka as robot
         self.scene.robot = FRANKA_PANDA_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-
+        
         # Set actions for the specific robot type (franka)
         self.actions.arm_action = mdp.JointPositionActionCfg(
             asset_name="robot", joint_names=["panda_joint.*"], scale=0.5, use_default_offset=True
@@ -43,13 +46,30 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
         print("[DEBUG]  Robot actions set ...")
         # Set the body name for the end effector
         self.commands.object_pose.body_name = "panda_hand"
+        self.commands.rack_pose.body_name = "panda_hand"
 
-        
+        # # Vial Rack 
+        self.scene.rack = RigidObjectCfg(
+            prim_path="{ENV_REGEX_NS}/Rack",
+            init_state=RigidObjectCfg.InitialStateCfg(pos=self.rack_pos, rot=self.rack_rot),
+            spawn=UsdFileCfg(
+                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd",
+                scale=(1.0, 1.0, 1.0),
+                rigid_props=RigidBodyPropertiesCfg(
+                    solver_position_iteration_count=24,
+                    solver_velocity_iteration_count=1,
+                    max_angular_velocity=1000.0,
+                    max_linear_velocity=1000.0,
+                    max_depenetration_velocity=5.0,
+                    disable_gravity=False,
+                ),
+            ),
+        )
 
-        # Use vial as obejct to pick
+        # Use vial as object to pick
         self.scene.object = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0.0285, 0.055], rot=[0, 1, 0, 0]),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=self.vial_offset, rot=[0, 1, 0, 0]),
             spawn=UsdFileCfg(
                 usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_20ml_centered.usd",
                 scale=(1.0, 1.0, 1.0),

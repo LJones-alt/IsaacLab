@@ -60,9 +60,9 @@ simulation_app = app_launcher.app
 import gymnasium as gym
 import torch
 from collections.abc import Sequence
-
+from enum import Enum
 import warp as wp
-
+from tensorflow.keras.backend import eval 
 from isaaclab.assets.rigid_object.rigid_object_data import RigidObjectData
 
 import isaaclab_tasks  # noqa: F401
@@ -82,7 +82,6 @@ class GripperState:
 
 class PickSmState:
     """States for the pick state machine."""
-
     REST = wp.constant(0)
     APPROACH_ABOVE_OBJECT = wp.constant(1)
     APPROACH_OBJECT = wp.constant(2)
@@ -122,16 +121,20 @@ def infer_state_machine(
     tid = wp.tid()
     # retrieve state machine state
     state = sm_state[tid]
+    
     # decide next state
     if state == PickSmState.REST:
         des_ee_pose[tid] = ee_pose[tid]
         gripper_state[tid] = GripperState.OPEN
-        # wait for a while
+        #print("[INFO] : ROBOT STATE  REST")
+        ## wait for a while
         if sm_wait_time[tid] >= PickSmWaitTime.REST:
+            #print("[INFO] : ROBOT STATE : MOVE_TO_NEXT")
             # move to next state and reset wait time
             sm_state[tid] = PickSmState.APPROACH_ABOVE_OBJECT
             sm_wait_time[tid] = 0.0
     elif state == PickSmState.APPROACH_ABOVE_OBJECT:
+        #print("[INFO] : ROBOT STATE : APPROACH_ABOVE_OBJECT")
         des_ee_pose[tid] = wp.transform_multiply(offset[tid], object_pose[tid])
         gripper_state[tid] = GripperState.OPEN
         if distance_below_threshold(
@@ -141,10 +144,12 @@ def infer_state_machine(
         ):
             # wait for a while
             if sm_wait_time[tid] >= PickSmWaitTime.APPROACH_OBJECT:
+                #print("[INFO] : ROBOT STATE : CLOSE ENOUGH PICK OBJECT")
                 # move to next state and reset wait time
                 sm_state[tid] = PickSmState.APPROACH_OBJECT
                 sm_wait_time[tid] = 0.0
     elif state == PickSmState.APPROACH_OBJECT:
+        #print("[INFO] : ROBOT STATE : APPROACH_OBJECT")
         des_ee_pose[tid] = object_pose[tid]
         gripper_state[tid] = GripperState.OPEN
         if distance_below_threshold(
@@ -153,18 +158,22 @@ def infer_state_machine(
             position_threshold,
         ):
             if sm_wait_time[tid] >= PickSmWaitTime.APPROACH_OBJECT:
+                #print("[INFO] : ROBOT STATE : TRYING TO PICK")
                 # move to next state and reset wait time
                 sm_state[tid] = PickSmState.GRASP_OBJECT
                 sm_wait_time[tid] = 0.0
     elif state == PickSmState.GRASP_OBJECT:
+        #print("[INFO] : ROBOT STATE : GRASP_OBJECT")
         des_ee_pose[tid] = object_pose[tid]
         gripper_state[tid] = GripperState.CLOSE
         # wait for a while
         if sm_wait_time[tid] >= PickSmWaitTime.GRASP_OBJECT:
             # move to next state and reset wait time
+            #print("[INFO] : ROBOT STATE : GRASP OK, TRY TO LIFT")
             sm_state[tid] = PickSmState.LIFT_OBJECT
             sm_wait_time[tid] = 0.0
     elif state == PickSmState.LIFT_OBJECT:
+        #print("[INFO] : ROBOT STATE : LIFT_OBJECT")
         des_ee_pose[tid] = des_object_pose[tid]
         gripper_state[tid] = GripperState.CLOSE
         if distance_below_threshold(
@@ -174,11 +183,13 @@ def infer_state_machine(
         ):
             # wait for a while
             if sm_wait_time[tid] >= PickSmWaitTime.LIFT_OBJECT:
+              #  print("[INFO] : ROBOT STATE : LIFTING_OBJECT")
                 # move to next state and reset wait time
                 sm_state[tid] = PickSmState.LIFT_OBJECT
                 sm_wait_time[tid] = 0.0
     # increment wait time
     sm_wait_time[tid] = sm_wait_time[tid] + dt[tid]
+   
 
 
 class PickAndLiftSm:
@@ -276,6 +287,7 @@ class PickAndLiftSm:
 
 
 def main():
+    
     # parse configuration
     env_cfg: LiftEnvCfg = parse_env_cfg(
         "Franka-IK-Abs-Vial-Pick-Place",
@@ -324,9 +336,12 @@ def main():
             # -- object frame
             object_data: RigidObjectData = env.unwrapped.scene["object"].data
             object_position = object_data.root_pos_w - env.unwrapped.scene.env_origins
+            
+            rack_data : RigidObjectData = env.unwrapped.scene["rack"].data
+            rack_position = rack_data.root_pos_w - env.unwrapped.scene.env_origins
             # -- target object frame
             desired_position = env.unwrapped.command_manager.get_command("object_pose")[..., :3]
-
+            rack_position = env.unwrapped.command_manager.get_command("rack_pose")[..., :3]
             # advance state machine
             actions = pick_sm.compute(
                 torch.cat([tcp_rest_position, tcp_rest_orientation], dim=-1),
@@ -337,6 +352,8 @@ def main():
             # reset state machine
             if dones.any():
                 pick_sm.reset_idx(dones.nonzero(as_tuple=False).squeeze(-1))
+                print(f"[INFO] RESET Object Position : {eval(object_position)}")
+                print(f"[INFO] RESET Rack Position : {eval(rack_position)}")
 
     # close the environment
     env.close()
