@@ -26,8 +26,8 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
-        self.rack_pos = [0.5, 0, 0]
-        self.vial_offset = self.rack_pos #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
+        self.rack_pos = [0.2, 0.1, 0]
+        self.vial_offset = [0,0,0] #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
         self.rack_rot =[0.707, 0, 0, 0.707]
 
         # Set Franka as robot
@@ -46,7 +46,7 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
         print("[DEBUG]  Robot actions set ...")
         # Set the body name for the end effector
         self.commands.object_pose.body_name = "panda_hand"
-        self.commands.rack_pose.body_name = "panda_hand"
+        #self.commands.rack_pose.body_name = "panda_hand"
 
         # # Vial Rack 
         self.scene.rack = RigidObjectCfg(

@@ -102,6 +102,8 @@ services:
     entrypoint: bash
     stdin_open: true
     tty: true
+    devices:
+      - /dev/hidraw3:/dev/hidraw3
 
   # This service adds a ROS2 Humble
   # installation on top of the base image
@@ -128,6 +130,8 @@ services:
     entrypoint: bash
     stdin_open: true
     tty: true
+    devices:
+      - /dev/hidraw3:/dev/hidraw3
     
   isaac-lab-ros2_mod:
     profiles: [ "ros2_mod" ]
@@ -152,6 +156,8 @@ services:
     entrypoint: bash
     stdin_open: true
     tty: true
+    devices:
+      - "/dev/hidraw6:/dev/hidraw6"
 
 volumes:
 
