@@ -26,8 +26,8 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
-        self.rack_pos = [0.2, 0.1, 0]
-        self.vial_offset = [0,0,0] #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
+        self.rack_pos = [0.3, 0.1, 0]
+        self.vial_offset = [0.3,0,0] #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
         self.rack_rot =[0.707, 0, 0, 0.707]
 
         # Set Franka as robot
@@ -48,23 +48,23 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
         self.commands.object_pose.body_name = "panda_hand"
         #self.commands.rack_pose.body_name = "panda_hand"
 
-        # # Vial Rack 
-        self.scene.rack = RigidObjectCfg(
-            prim_path="{ENV_REGEX_NS}/Rack",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=self.rack_pos, rot=self.rack_rot),
-            spawn=UsdFileCfg(
-                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd",
-                scale=(1.0, 1.0, 1.0),
-                rigid_props=RigidBodyPropertiesCfg(
-                    solver_position_iteration_count=24,
-                    solver_velocity_iteration_count=1,
-                    max_angular_velocity=1000.0,
-                    max_linear_velocity=1000.0,
-                    max_depenetration_velocity=5.0,
-                    disable_gravity=False,
-                ),
-            ),
-        )
+        # # Vial Rack - use when dynamic placement needed!
+        # self.scene.rack = RigidObjectCfg(
+        #     prim_path="{ENV_REGEX_NS}/Rack",
+        #     init_state=RigidObjectCfg.InitialStateCfg(pos=self.rack_pos, rot=self.rack_rot),
+        #     spawn=UsdFileCfg(
+        #         usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd",
+        #         scale=(1.0, 1.0, 1.0),
+        #         rigid_props=RigidBodyPropertiesCfg(
+        #             solver_position_iteration_count=24,
+        #             solver_velocity_iteration_count=1,
+        #             max_angular_velocity=1000.0,
+        #             max_linear_velocity=1000.0,
+        #             max_depenetration_velocity=5.0,
+        #             disable_gravity=False,
+        #         ),
+        #     ),
+        # )
 
         # Use vial as object to pick
         self.scene.object = RigidObjectCfg(
@@ -116,4 +116,4 @@ class VialPickPlaceEnvCfg_PLAY(VialPickPlaceEnvCfg):
         self.scene.num_envs = 50
         self.scene.env_spacing = 2.5
         # disable randomization for play
-        self.observations.policy.enable_corruption = False
+        self.observations.policy.enable_corruption = True

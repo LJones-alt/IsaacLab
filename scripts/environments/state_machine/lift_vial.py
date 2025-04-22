@@ -336,24 +336,26 @@ def main():
             # -- object frame
             object_data: RigidObjectData = env.unwrapped.scene["object"].data
             object_position = object_data.root_pos_w - env.unwrapped.scene.env_origins
+            #uncomment for rack 
+            rack_data : RigidObjectData = env.unwrapped.scene["vial_rack"]
+            #print(f"[INFO] RESET Object Position : {eval(rack_data)}")
             
-            rack_data : RigidObjectData = env.unwrapped.scene["rack"].data
-            rack_position = rack_data.root_pos_w - env.unwrapped.scene.env_origins
             # -- target object frame
             desired_position = env.unwrapped.command_manager.get_command("object_pose")[..., :3]
-            rack_position = env.unwrapped.command_manager.get_command("rack_pose")[..., :3]
+            #rack_position = env.unwrapped.command_manager.get_command("rack_pose")[..., :3]
             # advance state machine
             actions = pick_sm.compute(
                 torch.cat([tcp_rest_position, tcp_rest_orientation], dim=-1),
                 torch.cat([object_position, desired_orientation], dim=-1),
                 torch.cat([desired_position, desired_orientation], dim=-1),
+                #torch.cat([rack_position, rack_position], dim=-1),
             )
 
             # reset state machine
             if dones.any():
                 pick_sm.reset_idx(dones.nonzero(as_tuple=False).squeeze(-1))
                 print(f"[INFO] RESET Object Position : {eval(object_position)}")
-                print(f"[INFO] RESET Rack Position : {eval(rack_position)}")
+               # print(f"[INFO] RESET Rack Position : {eval(rack_position)}")
 
     # close the environment
     env.close()

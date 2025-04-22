@@ -14,6 +14,7 @@ from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.managers import ObservationGroupCfg as ObsGroup
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import RewardTermCfg as RewTerm
+from isaaclab.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg, CollisionPropertiesCfg
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
@@ -65,6 +66,34 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         spawn=sim_utils.DomeLightCfg(color=(0.75, 0.75, 0.75), intensity=3000.0),
     )
 
+    #vial rack 
+    # vial_rack = AssetBaseCfg(
+    #     prim_path="{ENV_REGEX_NS}/VialRack",
+    #     init_state=AssetBaseCfg.InitialStateCfg(pos=[0.3,-0.2,0], rot=[0.707, 0, 0, 0.707]),
+    #     spawn=UsdFileCfg(usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd"),
+    #     rigid_body_enabled=False,
+    #     collision_group =0
+    # )
+
+    vial_rack = RigidObjectCfg(
+            prim_path="{ENV_REGEX_NS}/VialRack",
+            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.3,-0.2,0], rot=[0.707, 0, 0, 0.707]),
+            spawn=UsdFileCfg(
+                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd",
+                scale=(1.0, 1.0, 1.0),
+                rigid_props=RigidBodyPropertiesCfg(
+                    solver_position_iteration_count=24,
+                    solver_velocity_iteration_count=1,
+                    max_angular_velocity=0.001,
+                    max_linear_velocity=0.001,
+                    max_depenetration_velocity=0.001,
+                    disable_gravity=False,
+                    kinematic_enabled=True
+                ),
+                collision_props=CollisionPropertiesCfg(),
+            ),
+            
+        )
 
 
 ##
@@ -93,7 +122,7 @@ class CommandsCfg:
         resampling_time_range=(5.0, 5.0),
         debug_vis=True,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
-            pos_x=(0.3, 0.3), pos_y=(-0.2, -0.2), pos_z=(0.02, 0.02), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
+            pos_x=(0.318, 0.318), pos_y=(-0.218,-0.218), pos_z=(0.02, 0.02), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
         ),
     )
 
@@ -141,24 +170,24 @@ class EventCfg:
     
     #uncomment for vial rack 
 
-    # get_rack_position =EventTerm(
+    # reset_rack_position =EventTerm(
     #     func=mdp.reset_root_state_uniform,
     #     mode="reset",
     #     params={
-    #         "pose_range": {"x": (-0.3, -0.3), "y": (-0.25, -0.25), "z": (0.0, 0.0)},
+    #         "pose_range": {"x": (0,0), "y": (0,0), "z": (0,0)},
     #         "velocity_range": {},
-    #         "asset_cfg": SceneEntityCfg("rack", body_names="Rack"),
+    #         "asset_cfg": SceneEntityCfg("vial_rack", body_names="VialRack"),
     #     },
     # )
     
     
     
-
+    # position adds/ removed from the spawn
     reset_object_position = EventTerm(
         func=mdp.reset_root_state_uniform,
         mode="reset",
         params={
-            "pose_range": {"x": (-0.3, -0.2), "y": (0.268, 0.268), "z": (0.01, 0.01)},
+            "pose_range": {"x": (0.2,-0.2), "y": (0.268, 0.268), "z": (0.1, 0.2)},
             "velocity_range": {},
             "asset_cfg": SceneEntityCfg("object", body_names="Object"),
         },

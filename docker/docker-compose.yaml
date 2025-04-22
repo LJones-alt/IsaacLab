@@ -131,7 +131,7 @@ services:
     stdin_open: true
     tty: true
     devices:
-      - /dev/hidraw3:/dev/hidraw3
+      - /dev/hidraw4:/dev/hidraw4
     
   isaac-lab-ros2_mod:
     profiles: [ "ros2_mod" ]
@@ -157,7 +157,7 @@ services:
     stdin_open: true
     tty: true
     devices:
-      - "/dev/hidraw6:/dev/hidraw6"
+      - "/dev/hidraw4:/dev/hidraw4"
 
 volumes:
 
