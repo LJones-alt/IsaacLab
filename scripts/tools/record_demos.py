@@ -146,6 +146,7 @@ def main():
         success_term = env_cfg.terminations.success
         env_cfg.terminations.success = None
     else:
+        print("------------NO END DEFINED------------")
         omni.log.warn(
             "No success termination term was found in the environment."
             " Will not be able to mark recorded demos as successful."

@@ -1,4 +1,3 @@
-
 # Copyright (c) 2024-2025, The Isaac Lab Project Developers.
 # All rights reserved.
 #
@@ -11,9 +10,9 @@ import isaaclab.utils.math as PoseUtils
 from isaaclab.envs import ManagerBasedRLMimicEnv
 
 
-class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
+class VialIKRelMimicEnv(ManagerBasedRLMimicEnv):
     """
-    Isaac Lab Mimic environment wrapper class for Franka Cube Stack IK Rel env.
+    Isaac Lab Mimic environment wrapper class for Vial pick place IK Rel env.
     """
 
     def get_robot_eef_pose(self, eef_name: str, env_ids: Sequence[int] | None = None) -> torch.Tensor:
@@ -29,12 +28,19 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
         """
         if env_ids is None:
             env_ids = slice(None)
+        try:
 
         # Retrieve end effector pose from the observation buffer
+            eef_pos = self.obs_buf["policy"]["eef_pos"][env_ids]
+            eef_quat = self.obs_buf["policy"]["eef_quat"][env_ids]
+            # Quaternion format is w,x,y,z
+        except:
+            print(f"-------------something wrong with eef pose -----------\n obs buf : {self.obs_buf} \n pose")
         eef_pos = self.obs_buf["policy"]["eef_pos"][env_ids]
         eef_quat = self.obs_buf["policy"]["eef_quat"][env_ids]
-        
-        # Quaternion format is w,x,y,z
+        # print(f"##############OBS BUF :   {self.obs_buf}###")
+        # print(f"##############EEF POS  : {eef_pos}")
+        # print(f"##############EEF POS  : {eef_quat}")
         return PoseUtils.make_pose(eef_pos, PoseUtils.matrix_from_quat(eef_quat))
 
     def target_eef_pose_to_action(
@@ -156,8 +162,6 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
 
         signals = dict()
         subtask_terms = self.obs_buf["subtask_terms"]
-        signals["grasp_1"] = subtask_terms["grasp_1"][env_ids]
-        signals["grasp_2"] = subtask_terms["grasp_2"][env_ids]
-        signals["stack_1"] = subtask_terms["stack_1"][env_ids]
-        # final subtask is placing cubeC on cubeA (motion relative to cubeA) - but final subtask signal is not needed
+        signals["grasp"] = subtask_terms["grasp"][env_ids]
+       # final subtask is placing cubeC on cubeA (motion relative to cubeA) - but final subtask signal is not needed
         return signals

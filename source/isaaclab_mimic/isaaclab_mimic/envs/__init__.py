@@ -10,25 +10,45 @@ import gymnasium as gym
 from .franka_stack_ik_rel_blueprint_mimic_env_cfg import FrankaCubeStackIKRelBlueprintMimicEnvCfg
 from .franka_stack_ik_rel_mimic_env import FrankaCubeStackIKRelMimicEnv
 from .franka_stack_ik_rel_mimic_env_cfg import FrankaCubeStackIKRelMimicEnvCfg
-
+from .Vial_ik_rel_blueprint_mimic_env_cfg import VialIKRelBlueprintMimicEnvCfg
+from .Vial_ik_rel_mimic_env import VialIKRelMimicEnv
+from .Vial_ik_rel_mimic_env_cfg import VialIKRelMimicEnvCfg
 ##
 # Inverse Kinematics - Relative Pose Control
 ##
 
+# gym.register(
+#     id="Isaac-Stack-Cube-Franka-IK-Rel-Mimic-v0",
+#     entry_point="isaaclab_mimic.envs:FrankaCubeStackIKRelMimicEnv",
+#     kwargs={
+#         "env_cfg_entry_point": franka_stack_ik_rel_mimic_env_cfg.FrankaCubeStackIKRelMimicEnvCfg,
+#     },
+#     disable_env_checker=True,
+# )
+
 gym.register(
-    id="Isaac-Stack-Cube-Franka-IK-Rel-Mimic-v0",
-    entry_point="isaaclab_mimic.envs:FrankaCubeStackIKRelMimicEnv",
+    id="Vial-Pick-Place-Franka-IK-Rel-Mimic-v0",
+    entry_point="isaaclab_mimic.envs:VialIKRelMimicEnv",
     kwargs={
-        "env_cfg_entry_point": franka_stack_ik_rel_mimic_env_cfg.FrankaCubeStackIKRelMimicEnvCfg,
+        "env_cfg_entry_point": Vial_ik_rel_mimic_env_cfg.VialIKRelMimicEnvCfg,
     },
     disable_env_checker=True,
 )
 
+# gym.register(
+#     id="Isaac-Stack-Cube-Franka-IK-Rel-Blueprint-Mimic-v0",
+#     entry_point="isaaclab_mimic.envs:FrankaCubeStackIKRelMimicEnv",
+#     kwargs={
+#         "env_cfg_entry_point": franka_stack_ik_rel_blueprint_mimic_env_cfg.FrankaCubeStackIKRelBlueprintMimicEnvCfg,
+#     },
+#     disable_env_checker=True,
+# )
+
 gym.register(
-    id="Isaac-Stack-Cube-Franka-IK-Rel-Blueprint-Mimic-v0",
-    entry_point="isaaclab_mimic.envs:FrankaCubeStackIKRelMimicEnv",
+    id="Vial-IK-Rel-Blueprint-Mimic-v0",
+    entry_point="isaaclab_mimic.envs:VialIKRelBlueprintMimicEnvCfg",
     kwargs={
-        "env_cfg_entry_point": franka_stack_ik_rel_blueprint_mimic_env_cfg.FrankaCubeStackIKRelBlueprintMimicEnvCfg,
+        "env_cfg_entry_point": Vial_ik_rel_blueprint_mimic_env_cfg.VialIKRelBlueprintMimicEnvCfg,
     },
     disable_env_checker=True,
 )

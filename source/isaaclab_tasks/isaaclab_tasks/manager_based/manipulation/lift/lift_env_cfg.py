@@ -39,6 +39,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
     which need to set the target object, robot and end-effector frames
     """
 
+
     # robots: will be populated by agent env cfg
     robot: ArticulationCfg = MISSING
     # end-effector sensor: will be populated by agent env cfg
@@ -77,7 +78,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 
     vial_rack = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/VialRack",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.3,-0.2,0], rot=[0.707, 0, 0, 0.707]),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5,-0.2,0], rot=[0.707, 0, 0, 0.707]),
             spawn=UsdFileCfg(
                 usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd",
                 scale=(1.0, 1.0, 1.0),
@@ -88,13 +89,13 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
                     max_linear_velocity=0.001,
                     max_depenetration_velocity=0.001,
                     disable_gravity=False,
-                    kinematic_enabled=True
+                   # kinematic_enabled=True
                 ),
-                collision_props=CollisionPropertiesCfg(),
+                #collision_props=CollisionPropertiesCfg(),
             ),
             
         )
-
+    
 
 ##
 # MDP settings
@@ -143,9 +144,12 @@ class ObservationsCfg:
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
-
+        eef_pos = ObsTerm(func=mdp.ee_frame_pos)
+        eef_quat = ObsTerm(func=mdp.ee_frame_quat)
+        gripper_pos = ObsTerm(func=mdp.gripper_pos)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
+        object = ObsTerm(func=mdp.object_obs)
         object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)
         #rack_position = ObsTerm(func=mdp.rack_position_in_robot_root_frame)
         print(f"[INFO] : ENV CONFIG Object position {object_position}")
@@ -154,11 +158,29 @@ class ObservationsCfg:
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
-            self.enable_corruption = True
-            self.concatenate_terms = True
+            self.enable_corruption = False
+            self.concatenate_terms = False
+
+    @configclass
+    class SubtaskCfg(ObsGroup):
+        """Observations for subtask group."""
+        ##subtask is grapsed vial
+        grasp = ObsTerm(
+            func=mdp.object_grasped,
+            params={
+                "robot_cfg": SceneEntityCfg("robot"),
+                "ee_frame_cfg": SceneEntityCfg("ee_frame"),
+                "object_cfg": SceneEntityCfg("object"),
+            },
+        )
+        
+        def __post_init__(self):
+            self.enable_corruption = False
+            self.concatenate_terms = False
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()
+    subtask_terms: SubtaskCfg = SubtaskCfg()
 
 
 @configclass
@@ -234,6 +256,8 @@ class TerminationsCfg:
         func=mdp.root_height_below_minimum, params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("object")}
     )
 
+    success = DoneTerm(func=mdp.object_reached_goal)
+
 
 @configclass
 class CurriculumCfg:
@@ -269,11 +293,13 @@ class LiftEnvCfg(ManagerBasedRLEnvCfg):
     events: EventCfg = EventCfg()
     curriculum: CurriculumCfg = CurriculumCfg()
 
+    
+
     def __post_init__(self):
         """Post initialization."""
         # general settings
-        self.decimation = 2
-        self.episode_length_s = 5.0
+        self.decimation = 10
+        self.episode_length_s = 60.0
         self.render_settings = sim_utils.RenderCfg(antialiasing_mode="DLAA", enable_dl_denoiser=True, dlss_mode=2)
         # simulation settings
         self.sim.dt = 0.01  # 100Hz
@@ -283,6 +309,8 @@ class LiftEnvCfg(ManagerBasedRLEnvCfg):
 
         self.sim.physx.bounce_threshold_velocity = 0.2
         self.sim.physx.bounce_threshold_velocity = 0.01
-        self.sim.physx.gpu_found_lost_aggregate_pairs_capacity = 1024 * 1024 * 4
-        self.sim.physx.gpu_total_aggregate_pairs_capacity = 16 * 1024
+       # self.sim.physx.gpu_found_lost_aggregate_pairs_capacity = 1024*1024*4
+        #self.sim.physx.gpu_total_aggregate_pairs_capacity = 16 * 1024 *4
         self.sim.physx.friction_correlation_distance = 0.00625
+
+        print(f"[INFO] Set GPU Pairs to {self.sim.physx.gpu_found_lost_aggregate_pairs_capacity}")

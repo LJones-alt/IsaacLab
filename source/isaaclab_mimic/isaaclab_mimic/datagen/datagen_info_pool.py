@@ -94,6 +94,8 @@ class DataGenInfoPool:
             object_poses_dict = ep_grp["obs"]["datagen_info"]["object_pose"]
             target_eef_pose = ep_grp["obs"]["datagen_info"]["target_eef_pose"][eef_name]
             subtask_term_signals_dict = ep_grp["obs"]["datagen_info"]["subtask_term_signals"]
+           # subtask_term_signals_dict = (ep_grp["obs"]["subtask_terms"],)
+           # print(f"########## subtask term signals : {subtask_term_signals_dict} ######")
         else:
             # Extract eef poses
             eef_pos = ep_grp["obs"]["eef_pos"]
@@ -120,7 +122,8 @@ class DataGenInfoPool:
 
             # Subtask termination signalsS
             subtask_term_signals_dict = (ep_grp["obs"]["subtask_term_signals"],)
-
+            #subtask_term_signals_dict = (ep_grp["obs"]["subtask_terms"],)
+            #print(f"########## subtask term signals : {subtask_term_signals_dict} ######")
         # Extract gripper actions
         gripper_actions = self.env.actions_to_gripper_actions(ep_grp["actions"])[eef_name]
 
@@ -138,11 +141,13 @@ class DataGenInfoPool:
         prev_subtask_term_ind = 0
         for subtask_ind in range(len(self.subtask_term_signals)):
             subtask_term_signal = self.subtask_term_signals[subtask_ind]
+           # print(f"############ trying : {subtask_term_signal}")
             if subtask_term_signal is None:
                 # final subtask, finishes at end of demo
                 subtask_term_ind = ep_grp["actions"].shape[0]
             else:
                 # trick to detect index where first 0 -> 1 transition occurs - this will be the end of the subtask
+             #   print(f"############ SUBTASK KEY : {subtask_term_signal}")
                 subtask_indicators = ep_datagen_info_obj.subtask_term_signals[subtask_term_signal].flatten().int()
                 diffs = subtask_indicators[1:] - subtask_indicators[:-1]
                 end_ind = int(diffs.nonzero()[0][0]) + 1
@@ -159,6 +164,7 @@ class DataGenInfoPool:
             self.subtask_term_signals
         ), "mismatch in length of extracted subtask info and number of subtasks"
         for i in range(1, len(ep_subtask_indices)):
+            #print(f" ########### term offset range {self.subtask_term_offset_ranges}")
             prev_max_offset_range = self.subtask_term_offset_ranges[i - 1][1]
             assert (
                 ep_subtask_indices[i - 1][1] + prev_max_offset_range

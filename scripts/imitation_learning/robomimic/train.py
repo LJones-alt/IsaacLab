@@ -81,7 +81,7 @@ def train(config, device):
     torch.manual_seed(config.train.seed)
 
     print("\n============= New Training Run with Config =============")
-    print(config)
+    #print(config)
     print("")
     log_dir, ckpt_dir, video_dir = TrainUtils.get_exp_dir(config)
 
@@ -146,7 +146,8 @@ def train(config, device):
         ac_dim=shape_meta["ac_dim"],
         device=device,
     )
-
+    temp=shape_meta["all_obs_keys"]
+    print(f"######### obs key shape :  {temp}")
     # save the config as a json file
     with open(os.path.join(log_dir, "..", "config.json"), "w") as outfile:
         json.dump(config, outfile, indent=4)
@@ -154,9 +155,9 @@ def train(config, device):
     print("\n============= Model Summary =============")
     print(model)  # print model summary
     print("")
-
-    # load training data
+    print(f"############### trying to load dataset keys : {config.train}#########")
     trainset, validset = TrainUtils.load_data_for_training(config, obs_keys=shape_meta["all_obs_keys"])
+    #trainset, validset = TrainUtils.load_data_for_training(config, obs_keys=shape_meta)
     train_sampler = trainset.get_dataset_sampler()
     print("\n============= Training Dataset =============")
     print(trainset)
@@ -284,7 +285,7 @@ def main(args):
     if args.task is not None:
         # obtain the configuration entry point
         cfg_entry_point_key = f"robomimic_{args.algo}_cfg_entry_point"
-
+        print(f"######Ky entry point {cfg_entry_point_key}")
         print(f"Loading configuration for task: {args.task}")
         print(gym.envs.registry.keys())
         print(" ")
@@ -295,7 +296,7 @@ def main(args):
                 f"Could not find configuration for the environment: '{args.task}'."
                 f" Please check that the gym registry has the entry point: '{cfg_entry_point_key}'."
             )
-
+        print("###### Entry done  #####")
         with open(cfg_entry_point_file) as f:
             ext_cfg = json.load(f)
             config = config_factory(ext_cfg["algo_name"])
@@ -305,7 +306,7 @@ def main(args):
             config.update(ext_cfg)
     else:
         raise ValueError("Please provide a task name through CLI arguments.")
-
+    print("######LOAD DATASET  #####")
     if args.dataset is not None:
         config.train.data = args.dataset
 
@@ -323,6 +324,7 @@ def main(args):
     # catch error during training and print it
     res_str = "finished run successfully!"
     try:
+        print(f"Attempting train : config {config}, device= {device}")
         train(config, device=device)
     except Exception as e:
         res_str = f"run failed with error:\n{e}\n\n{traceback.format_exc()}"
@@ -331,7 +333,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
+    print("######Start #####")
     # Experiment Name (for tensorboard, saving models, etc.)
     parser.add_argument(
         "--name",
@@ -339,7 +341,7 @@ if __name__ == "__main__":
         default=None,
         help="(optional) if provided, override the experiment name defined in the config",
     )
-
+   
     # Dataset path, to override the one in the config
     parser.add_argument(
         "--dataset",
@@ -356,5 +358,6 @@ if __name__ == "__main__":
 
     # run training
     main(args)
+
     # close sim app
     simulation_app.close()

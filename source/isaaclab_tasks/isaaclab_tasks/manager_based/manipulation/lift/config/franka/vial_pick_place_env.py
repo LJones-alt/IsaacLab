@@ -18,11 +18,14 @@ from isaaclab_tasks.manager_based.manipulation.lift.lift_env_cfg import LiftEnvC
 # Pre-defined configs
 ##
 from isaaclab.markers.config import FRAME_MARKER_CFG  # isort: skip
-from isaaclab_assets.robots.franka import FRANKA_PANDA_CFG  # isort: skip
+from isaaclab_assets.robots.franka import FRANKA_PANDA_CFG , FRANKA_PANDA_HIGH_PD_CFG # isort: skip
+from isaaclab.controllers.differential_ik_cfg import DifferentialIKControllerCfg
+from isaaclab.envs.mdp.actions.actions_cfg import DifferentialInverseKinematicsActionCfg
 
 
 @configclass
 class VialPickPlaceEnvCfg(LiftEnvCfg):
+    
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -31,11 +34,21 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
         self.rack_rot =[0.707, 0, 0, 0.707]
 
         # Set Franka as robot
-        self.scene.robot = FRANKA_PANDA_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        
+        self.scene.robot = FRANKA_PANDA_HIGH_PD_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+
+        self.scene.table.spawn.semantic_tags = [("class", "table")]
+
+        # Add semantics to ground
+        self.scene.plane.semantic_tags = [("class", "ground")]
+
         # Set actions for the specific robot type (franka)
-        self.actions.arm_action = mdp.JointPositionActionCfg(
-            asset_name="robot", joint_names=["panda_joint.*"], scale=0.5, use_default_offset=True
+         # Set actions for the specific robot type (franka)
+        self.actions.arm_action = DifferentialInverseKinematicsActionCfg(
+            asset_name="robot",
+            joint_names=["panda_joint.*"],
+            body_name="panda_hand",
+            controller=DifferentialIKControllerCfg(command_type="pose", use_relative_mode=True, ik_method="dls"),
+            body_offset=DifferentialInverseKinematicsActionCfg.OffsetCfg(pos=[0.0, 0.0, 0.107]),
         )
         self.actions.gripper_action = mdp.BinaryJointPositionActionCfg(
             asset_name="robot",
@@ -69,11 +82,11 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
         # Use vial as object to pick
         self.scene.object = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=self.vial_offset, rot=[0, 1, 0, 0]),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=self.vial_offset, rot=self.rack_rot),
             spawn=UsdFileCfg(
                 usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_20ml_centered.usd",
                 scale=(1.0, 1.0, 1.0),
-                
+                semantic_tags=[("class", "object")],
                 rigid_props=RigidBodyPropertiesCfg(
                     solver_position_iteration_count=24,
                     solver_velocity_iteration_count=1,

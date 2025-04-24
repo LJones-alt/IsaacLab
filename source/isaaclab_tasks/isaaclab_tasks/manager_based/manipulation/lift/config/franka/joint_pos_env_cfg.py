@@ -79,23 +79,23 @@ class FrankaCubeLiftEnvCfg(LiftEnvCfg):
             ),
         )
 
-         # # Vial Rack 
-        self.scene.rack = RigidObjectCfg(
-            prim_path="{ENV_REGEX_NS}/Rack",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0.1, 0.055], rot=[0.707, 0, 0, 0.707]),
-            spawn=UsdFileCfg(
-                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd",
-                scale=(1.0, 1.0, 1.0),
-                rigid_props=RigidBodyPropertiesCfg(
-                    solver_position_iteration_count=24,
-                    solver_velocity_iteration_count=1,
-                    max_angular_velocity=1000.0,
-                    max_linear_velocity=1000.0,
-                    max_depenetration_velocity=5.0,
-                    disable_gravity=False,
-                ),
-            ),
-        )
+        #  # # Vial Rack 
+        # self.scene.rack = RigidObjectCfg(
+        #     prim_path="{ENV_REGEX_NS}/Rack",
+        #     init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0.1, 0.055], rot=[0.707, 0, 0, 0.707]),
+        #     spawn=UsdFileCfg(
+        #         usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd",
+        #         scale=(1.0, 1.0, 1.0),
+        #         rigid_props=RigidBodyPropertiesCfg(
+        #             solver_position_iteration_count=24,
+        #             solver_velocity_iteration_count=1,
+        #             max_angular_velocity=1000.0,
+        #             max_linear_velocity=1000.0,
+        #             max_depenetration_velocity=5.0,
+        #             disable_gravity=False,
+        #         ),
+        #     ),
+        # )
 
         # Listens to the required transforms
         marker_cfg = FRAME_MARKER_CFG.copy()
