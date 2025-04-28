@@ -171,9 +171,8 @@ def main():
     
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)
-    sim = sim_utils.RenderCfg(antialiasing_mode="DLAA", enable_dl_denoiser = True)
-    # Set main camera
-    sim.set_camera_view([3.5, 0.0, 3.2], [0.0, 0.0, 0.5])
+ 
+   
     
     # design scene
     scene_entities, scene_origins = design_scene()

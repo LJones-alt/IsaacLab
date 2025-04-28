@@ -60,6 +60,7 @@ import traceback
 from collections import OrderedDict
 from torch.utils.data import DataLoader
 
+from datetime import datetime
 import psutil
 import robomimic.utils.env_utils as EnvUtils
 import robomimic.utils.file_utils as FileUtils
@@ -102,10 +103,13 @@ def train(config, device):
     dataset_path = os.path.expanduser(config.train.data)
     if not os.path.exists(dataset_path):
         raise FileNotFoundError(f"Dataset at provided path {dataset_path} not found!")
-
+    print("##### Data set exists OK ")
+    print(f"#######test : {config.train.data[0]}")
+    print(f"######trying to fnd key {config.train.hdf5_filter_key}")
     # load basic metadata from training file
     print("\n============= Loaded Environment Metadata =============")
     env_meta = FileUtils.get_env_metadata_from_dataset(dataset_path=config.train.data)
+    print(f" ENV Meta : {env_meta}")
     shape_meta = FileUtils.get_shape_metadata_from_dataset(
         dataset_path=config.train.data, all_obs_keys=config.all_obs_keys, verbose=True
     )
@@ -117,9 +121,10 @@ def train(config, device):
     # create environment
     envs = OrderedDict()
     if config.experiment.rollout.enabled:
+        print("### CONFIG for validation : ")
         # create environments for validation runs
         env_names = [env_meta["env_name"]]
-
+        print(f"Env Names : {env_names}")
         if config.experiment.additional_envs is not None:
             for name in config.experiment.additional_envs:
                 env_names.append(name)
@@ -133,7 +138,7 @@ def train(config, device):
                 use_image_obs=shape_meta["use_images"],
             )
             envs[env.name] = env
-            print(envs[env.name])
+            print(f" THESE envs : {envs[env.name]}")
 
     print("")
 
@@ -153,9 +158,16 @@ def train(config, device):
         json.dump(config, outfile, indent=4)
 
     print("\n============= Model Summary =============")
-    print(model)  # print model summary
+    #print(model)  # print model summary
     print("")
+    #config.train['num_data_workers'] =4
+    #config.train['hdf5_filter_key'] = None
+    #config.train['hdf5_validation_filter_key'] = None
     print(f"############### trying to load dataset keys : {config.train}#########")
+    temp2 = shape_meta["all_obs_keys"]
+    print(f"####### passing obs : {temp2}")
+    #trainset = data_loader(config, obs_keys=shape_meta["all_obs_keys"])
+    
     trainset, validset = TrainUtils.load_data_for_training(config, obs_keys=shape_meta["all_obs_keys"])
     #trainset, validset = TrainUtils.load_data_for_training(config, obs_keys=shape_meta)
     train_sampler = trainset.get_dataset_sampler()
@@ -278,6 +290,16 @@ def train(config, device):
     # terminate logging
     data_logger.close()
 
+def data_loader(config , obs_keys):
+    #train_filter_by_attribute = config.train.hdf5_filter_key
+    #valid_filter_by_attribute = config.train.hdf5_validation_filter_key
+    
+    # load the dataset into memory
+    
+    train_dataset = TrainUtils.dataset_factory(config, obs_keys, filter_by_attribute=None)
+    valid_dataset = None
+
+    return train_dataset, valid_dataset
 
 def main(args):
     """Train a model on a task using a specified algorithm."""
@@ -285,9 +307,9 @@ def main(args):
     if args.task is not None:
         # obtain the configuration entry point
         cfg_entry_point_key = f"robomimic_{args.algo}_cfg_entry_point"
-        print(f"######Ky entry point {cfg_entry_point_key}")
+        print(f"######Key entry point {cfg_entry_point_key}")
         print(f"Loading configuration for task: {args.task}")
-        print(gym.envs.registry.keys())
+        #print(gym.envs.registry.keys())
         print(" ")
         cfg_entry_point_file = gym.spec(args.task).kwargs.pop(cfg_entry_point_key)
         # check if entry point exists
@@ -297,9 +319,11 @@ def main(args):
                 f" Please check that the gym registry has the entry point: '{cfg_entry_point_key}'."
             )
         print("###### Entry done  #####")
+        print(f"######OPENING : {cfg_entry_point_file}")
         with open(cfg_entry_point_file) as f:
             ext_cfg = json.load(f)
             config = config_factory(ext_cfg["algo_name"])
+            #print(f" Config : {config}")
         # update config with external json - this will throw errors if
         # the external config has keys not present in the base algo config
         with config.values_unlocked():
@@ -307,24 +331,31 @@ def main(args):
     else:
         raise ValueError("Please provide a task name through CLI arguments.")
     print("######LOAD DATASET  #####")
+    test = config.train.data
+    print(f"##### made train dataset 0  {test}")
     if args.dataset is not None:
         config.train.data = args.dataset
+        test = config.train.data
+        print(f"##### made train dataset 0  {test}")
 
     if args.name is not None:
         config.experiment.name = args.name
 
     # change location of experiment directory
-    config.train.output_dir = os.path.abspath(os.path.join("./logs", args.log_dir, args.task))
+    config.train.output_dir = os.path.abspath(os.path.join("docs/training_runs/", args.task, str(datetime.now()) ))
 
     # get torch device
     device = TorchUtils.get_torch_device(try_to_use_cuda=config.train.cuda)
-
+    
     config.lock()
 
     # catch error during training and print it
     res_str = "finished run successfully!"
     try:
-        print(f"Attempting train : config {config}, device= {device}")
+        print(f"Attempting train : ")
+        test = config.train.data
+        print(f"##### made train dataset 0  {test}")
+        
         train(config, device=device)
     except Exception as e:
         res_str = f"run failed with error:\n{e}\n\n{traceback.format_exc()}"

@@ -17,30 +17,38 @@
             "on_best_rollout_success_rate": true
         },
         "epoch_every_n_steps": 100,
+        "validation_epoch_every_n_steps": 10,
         "env": null,
         "additional_envs": null,
         "render": false,
-        "render_video": false,
+        "render_video": true,
+        "keep_all_videos": false,
+        "video_skip": 5,
         "rollout": {
-            "enabled": false
+            "enabled": false,
+            "terminate_on_success" : true
         }
     },
     "train": {
         "data": null,
-        "num_data_workers": 4,
-        "hdf5_cache_mode": "all",
+        "output_dir": "../lift_vial_4000",
+        "num_data_workers": 1,
+        "hdf5_cache_mode": "low_dim",
         "hdf5_use_swmr": true,
         "hdf5_normalize_obs": false,
         "hdf5_filter_key": null,
         "hdf5_validation_filter_key": null,
         "seq_length": 10,
         "dataset_keys": [
-            "actions"
+            "actions",
+            "rewards",
+            "dones"
         ],
+        
         "goal_mode": null,
         "cuda": true,
         "batch_size": 100,
-        "num_epochs": 2000,
+        "num_epochs": 4000,
         "seed": 101
     },
     "algo": {
@@ -48,7 +56,7 @@
             "policy": {
                 "optimizer_type": "adam",
                 "learning_rate": {
-                    "initial": 0.001,
+                    "initial": 0.0001,
                     "decay_factor": 0.1,
                     "epoch_schedule": [],
                     "scheduler_type": "multistep"
@@ -66,7 +74,7 @@
         "actor_layer_dims": [],
         "gmm": {
             "enabled": true,
-            "num_modes": 5,
+            "num_modes": 10,
             "min_std": 0.0001,
             "std_activation": "softplus",
             "low_noise_eval": true

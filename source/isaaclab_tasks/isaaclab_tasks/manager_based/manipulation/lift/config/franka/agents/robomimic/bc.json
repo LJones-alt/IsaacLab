@@ -35,14 +35,14 @@
     },
     "train": {
         "data": null,
-        "output_dir": "../bc_trained_models",
+        "output_dir": "../bc_simple_trained_models",
         "num_data_workers": 0,
         "hdf5_cache_mode": "all",
         "hdf5_use_swmr": true,
         "hdf5_normalize_obs": false,
-        "hdf5_filter_key": "train",
-        "hdf5_validation_filter_key": "valid",
-        "seq_length": 1,
+        "hdf5_filter_key": null,
+        "hdf5_validation_filter_key": null,
+        "seq_length": 10,
         "dataset_keys": [
             "actions",
             "rewards",
@@ -51,16 +51,18 @@
         "goal_mode": null,
         "cuda": true,
         "batch_size": 100,
-        "num_epochs": 200,
-        "seed": 1
+        "num_epochs": 2000,
+        "seed": 101
     },
     "algo": {
         "optim_params": {
             "policy": {
+                "optimizer_type": "adam",
                 "learning_rate": {
                     "initial": 0.0001,
                     "decay_factor": 0.1,
-                    "epoch_schedule": []
+                    "epoch_schedule": [],
+                    "scheduler_type": "multistep"
                 },
                 "regularization": {
                     "L2": 0.0
@@ -85,12 +87,13 @@
             "low_noise_eval": true
         },
         "gmm": {
-            "enabled": false,
+            "enabled": true,
             "num_modes": 5,
             "min_std": 0.0001,
             "std_activation": "softplus",
             "low_noise_eval": true
         },
+        
         "vae": {
             "enabled": false,
             "latent_dim": 14,
@@ -145,7 +148,11 @@
                     "joint_pos",
                     "joint_vel",
                     "object_position",
-                    "target_object_position"
+                    "target_object_position",
+                    "eef_pos",
+                    "eef_quat",
+                    "gripper_pos",
+                    "object"
                 ],
                 "rgb": [],
                 "depth": [],

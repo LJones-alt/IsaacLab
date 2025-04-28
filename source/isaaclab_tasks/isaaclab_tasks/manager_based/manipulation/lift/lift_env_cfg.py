@@ -173,6 +173,13 @@ class ObservationsCfg:
                 "object_cfg": SceneEntityCfg("object"),
             },
         )
+        lift = ObsTerm(
+            func=mdp.object_is_lifted,
+            params={
+                "minimal_height": 0.05,
+                "object_cfg": SceneEntityCfg("object"),
+            },
+        )
         
         def __post_init__(self):
             self.enable_corruption = False
@@ -209,7 +216,7 @@ class EventCfg:
         func=mdp.reset_root_state_uniform,
         mode="reset",
         params={
-            "pose_range": {"x": (0.2,-0.2), "y": (0.268, 0.268), "z": (0.1, 0.2)},
+            "pose_range": {"x": (0.2,0.2), "y": (0.0, 0.0), "z": (0.1, 0.2)},
             "velocity_range": {},
             "asset_cfg": SceneEntityCfg("object", body_names="Object"),
         },
@@ -220,14 +227,14 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.1}, weight=1.0)
+    reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.1}, weight=15.0)
 
     lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.04}, weight=15.0)
 
     object_goal_tracking = RewTerm(
         func=mdp.object_goal_distance,
         params={"std": 0.3, "minimal_height": 0.04, "command_name": "object_pose"},
-        weight=16.0,
+        weight=10.0,
     )
 
     object_goal_tracking_fine_grained = RewTerm(
@@ -255,8 +262,8 @@ class TerminationsCfg:
     object_dropping = DoneTerm(
         func=mdp.root_height_below_minimum, params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("object")}
     )
-
-    success = DoneTerm(func=mdp.object_reached_goal)
+    ## simplified to lift object 
+    success = DoneTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.04})
 
 
 @configclass
@@ -298,8 +305,8 @@ class LiftEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self):
         """Post initialization."""
         # general settings
-        self.decimation = 10
-        self.episode_length_s = 60.0
+        self.decimation = 5
+        self.episode_length_s = 30.0
         self.render_settings = sim_utils.RenderCfg(antialiasing_mode="DLAA", enable_dl_denoiser=True, dlss_mode=2)
         # simulation settings
         self.sim.dt = 0.01  # 100Hz
@@ -313,4 +320,4 @@ class LiftEnvCfg(ManagerBasedRLEnvCfg):
         #self.sim.physx.gpu_total_aggregate_pairs_capacity = 16 * 1024 *4
         self.sim.physx.friction_correlation_distance = 0.00625
 
-        print(f"[INFO] Set GPU Pairs to {self.sim.physx.gpu_found_lost_aggregate_pairs_capacity}")
+        #print(f"[INFO] Set GPU Pairs to {self.sim.physx.gpu_found_lost_aggregate_pairs_capacity}")

@@ -36,7 +36,8 @@ class VialPickPlaceEnvCfg(vial_pick_place_env.VialPickPlaceEnvCfg):
 
         # Add semantics to ground
         self.scene.plane.semantic_tags = [("class", "ground")]
-
+        # Add noise to observations 
+        self.observations.policy.enable_corruption = True
         # Set actions for the specific robot type (franka)
         self.actions.arm_action = DifferentialInverseKinematicsActionCfg(
             asset_name="robot",
