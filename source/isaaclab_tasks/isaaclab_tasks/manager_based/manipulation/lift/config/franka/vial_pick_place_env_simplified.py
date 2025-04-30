@@ -12,7 +12,7 @@ from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
 from isaaclab_tasks.manager_based.manipulation.lift import mdp
-from isaaclab_tasks.manager_based.manipulation.lift.lift_env_cfg import LiftEnvCfg
+from isaaclab_tasks.manager_based.manipulation.lift.beaker_env_cfg import LiftEnvCfg
 
 ##
 # Pre-defined configs
@@ -30,8 +30,8 @@ class VialSimplePickPlaceEnvCfg(LiftEnvCfg):
         # post init of parent
         super().__post_init__()
         self.rack_pos = [0.3, 0.1, 0]
-        self.vial_offset = [0.3,0,0.1] #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
-        self.rack_rot =[0.707, 0, 0, 0]
+        self.vial_offset = [0.3,0,0.05] #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
+        self.rack_rot =[0, -0.707, -0.707, 0]
 
         # Set Franka as robot
         self.scene.robot = FRANKA_PANDA_HIGH_PD_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -82,11 +82,11 @@ class VialSimplePickPlaceEnvCfg(LiftEnvCfg):
         # Use vial as object to pick
         self.scene.object = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=self.vial_offset, rot=self.rack_rot),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=self.vial_offset, rot=[1,0,0,0]),
             spawn=UsdFileCfg(
-                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/test_cube.usd",
+                usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/vial_rack.usd",
                 #usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Blocks/blue_block.usd",
-                scale=(1.0, 1.0, 1.0),
+                scale=(0.8, 0.8, 1.5),
                 semantic_tags=[("class", "object")],
                 rigid_props=RigidBodyPropertiesCfg(
                     solver_position_iteration_count=24,

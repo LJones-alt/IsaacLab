@@ -48,7 +48,8 @@ def object_reached_goal(
     des_pos_w, _ = combine_frame_transforms(robot.data.root_state_w[:, :3], robot.data.root_state_w[:, 3:7], des_pos_b)
     # distance of the end-effector to the object: (num_envs,)
     distance = torch.norm(des_pos_w - object.data.root_pos_w[:, :3], dim=1)
-
+    # if distance < threshold:
+    #     print("-------object reached goal-----")
     # rewarded if the object is lifted above the threshold
     return distance < threshold
 
@@ -57,4 +58,7 @@ def object_is_lifted(
 ) -> torch.Tensor:
     """Reward the agent for lifting the object above the minimal height."""
     object: RigidObject = env.scene[object_cfg.name]
-    return torch.where(object.data.root_pos_w[:, 2] > minimal_height, 1.0, 0.0)
+    lifted = torch.where(object.data.root_pos_w[:, 2] > minimal_height, 1.0, 0.0)
+    # if lifted:
+    #     print("===== Object Lifted =====")
+    return lifted

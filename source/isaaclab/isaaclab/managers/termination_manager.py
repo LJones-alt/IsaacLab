@@ -162,12 +162,14 @@ class TerminationManager(ManagerBase):
         self._terminated_buf[:] = False
         # iterate over all the termination terms
         for name, term_cfg in zip(self._term_names, self._term_cfgs):
+            
             value = term_cfg.func(self._env, **term_cfg.params)
+            #print(f"########TERM Manager  : term value {value[0]}, term name : {name}, term cfg {term_cfg}")
             # store timeout signal separately
             if term_cfg.time_out:
-                self._truncated_buf |= value
+                self._truncated_buf |= bool(value)
             else:
-                self._terminated_buf |= value
+                self._terminated_buf |= bool(value)
             # add to episode dones
             self._term_dones[name][:] = value
         # return combined termination signal

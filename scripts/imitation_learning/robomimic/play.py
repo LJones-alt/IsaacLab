@@ -10,7 +10,7 @@
 import argparse
 
 from isaaclab.app import AppLauncher
-
+import imageio
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Evaluate robomimic policy for Isaac Lab environment.")
 parser.add_argument(
@@ -42,10 +42,13 @@ import robomimic.utils.torch_utils as TorchUtils
 from isaaclab_tasks.utils import parse_env_cfg
 
 
-def rollout(policy, env, horizon, device):
+def rollout(policy, env, horizon, device, render=False, video_writer=None, video_skip=5, camera_names=None):
     policy.start_episode
     obs_dict, _ = env.reset()
     traj = dict(actions=[], obs=[], next_obs=[])
+    # compute reward
+    video_count = 0  # video frame counter
+    total_reward = 0.
 
     for i in range(horizon):
         # Prepare observations
@@ -59,8 +62,24 @@ def rollout(policy, env, horizon, device):
         actions = torch.from_numpy(actions).to(device=device).view(1, env.action_space.shape[1])
 
         # Apply actions
-        obs_dict, _, terminated, truncated, _ = env.step(actions)
+        #print(f"############ACTIONS ARE :  {actions}")
+        obs_dict, r, terminated, truncated, _ = env.step(actions)
         obs = obs_dict["policy"]
+        
+        total_reward += r
+        #success = env.is_success()["task"]
+
+        # visualization
+        if render:
+            env.render(mode="human", camera_name=camera_names[0])
+        if video_writer is not None:
+            if video_count % video_skip == 0:
+                video_img = []
+                for cam_name in camera_names:
+                    video_img.append(env.render(mode="rgb_array", height=512, width=512, camera_name=cam_name))
+                video_img = np.concatenate(video_img, axis=1) # concatenate horizontally
+                video_writer.append_data(video_img)
+            video_count += 1
 
         # Record trajectory
         traj["actions"].append(actions.tolist())
@@ -71,7 +90,7 @@ def rollout(policy, env, horizon, device):
         elif truncated:
             return False, traj
 
-    return False, traj
+    return False, traj, total_reward
 
 
 def main():
@@ -101,17 +120,23 @@ def main():
     # Load policy
     policy, _ = FileUtils.policy_from_checkpoint(ckpt_path=args_cli.checkpoint, device=device, verbose=True)
 
+    video_path = "rollout.mp4"
+    video_writer = imageio.get_writer(video_path, fps=20)
     # Run policy
     results = []
+    rewards = []
     for trial in range(args_cli.num_rollouts):
         print(f"[INFO] Starting trial {trial}")
-        terminated, traj = rollout(policy, env, args_cli.horizon, device)
+       # print(f"[INFO] Caught changes")
+        terminated,  reward = rollout(policy, env, args_cli.horizon, device, False, None, 5, camera_names=["agentview"] )
         results.append(terminated)
+        rewards.append(reward)
         print(f"[INFO] Trial {trial}: {terminated}\n")
 
     print(f"\nSuccessful trials: {results.count(True)}, out of {len(results)} trials")
     print(f"Success rate: {results.count(True) / len(results)}")
     print(f"Trial Results: {results}\n")
+    print(f"Rewards : {rewards} \n")
 
     env.close()
 

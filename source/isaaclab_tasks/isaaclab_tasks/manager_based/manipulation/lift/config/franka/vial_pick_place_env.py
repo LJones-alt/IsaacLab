@@ -30,7 +30,7 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
         # post init of parent
         super().__post_init__()
         self.rack_pos = [0.3, 0.1, 0]
-        self.vial_offset = [0.3,0,0.1] #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
+        self.vial_offset = [0.3,0,0.04] #[self.rack_pos[0]+0.002, self.rack_pos[1]+0.018, self.rack_pos[2]+0.018]
         self.rack_rot =[0.707, 0, 0, 0]
 
         # Set Franka as robot
@@ -82,7 +82,7 @@ class VialPickPlaceEnvCfg(LiftEnvCfg):
         # Use vial as object to pick
         self.scene.object = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object",
-            init_state=RigidObjectCfg.InitialStateCfg(pos=self.vial_offset, rot=self.rack_rot),
+            init_state=RigidObjectCfg.InitialStateCfg(pos=self.vial_offset, rot=[1,0,0,0]),
             spawn=UsdFileCfg(
                 usd_path=f"/workspace/isaaclab/source/isaaclab_assets/data/Props/glassware/test_cube.usd",
                 #usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Blocks/blue_block.usd",

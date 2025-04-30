@@ -231,7 +231,7 @@ def main():
 
                 # replay actions from this episode
                 actions = episode_data["actions"]
-                print(f"Actions : {actions}")
+                #print(f"Actions : {actions}")
                 first_action = True
                 for action_index, action in enumerate(actions):
                     current_action_index = action_index
@@ -267,7 +267,7 @@ def main():
                     annotated_episode = env.unwrapped.recorder_manager.get_episode(0)
                     subtask_term_signal_dict = annotated_episode.data["obs"]["datagen_info"]["subtask_term_signals"]
                     is_episode_annotated_successfully = True
-                    print(f"Doing auto annotation for {annotated_episode} : {subtask_term_signal_dict }")
+                    #print(f"Doing auto annotation for {annotated_episode} : {subtask_term_signal_dict }")
                     for signal_name, signal_flags in subtask_term_signal_dict.items():
                         if not torch.any(signal_flags):
                             is_episode_annotated_successfully = False

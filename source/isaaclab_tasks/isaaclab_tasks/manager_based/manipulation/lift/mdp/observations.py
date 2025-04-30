@@ -91,6 +91,8 @@ def object_grasped(
         grasped, torch.abs(robot.data.joint_pos[:, -2] - gripper_open_val.to(env.device)) > gripper_threshold
     )
 
+    
+
     return grasped
 
 # uncomment for rack 

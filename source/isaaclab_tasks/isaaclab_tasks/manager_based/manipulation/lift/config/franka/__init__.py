@@ -67,6 +67,19 @@ gym.register(
     disable_env_checker=True,
 )
 
+gym.register(
+    id="Vial-Simple-Pick-Place-Play",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.vial_pick_place_env_simplified:VialSimplePickPlaceEnvCfg_PLAY",
+        #"rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:LiftCubePPORunnerCfg",
+       # "skrl_cfg_entry_point": f"{agents.__name__}:skrl_ppo_cfg.yaml",
+       # "rl_games_cfg_entry_point": f"{agents.__name__}:rl_games_ppo_cfg.yaml",
+       # "sb3_cfg_entry_point": f"{agents.__name__}:sb3_ppo_cfg.yaml",
+    },
+    disable_env_checker=True,
+)
+
 ##
 # Inverse Kinematics - Absolute Pose Control
 ##
@@ -119,6 +132,17 @@ gym.register(
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     kwargs={
         "env_cfg_entry_point": f"{__name__}.ik_rel_cfg_vial:VialPickPlaceEnvCfg",
+        "robomimic_bc_cfg_entry_point": os.path.join(agents.__path__[0], "robomimic/bc_rnn_low_dim.json"),
+        "robomimic_bc_simple_cfg_entry_point": os.path.join(agents.__path__[0], "robomimic/bc.json"),
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
+    id="Isaac-Lift-Vial-Simple-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.ik_rel_cfg_vial_simplified:VialSimplePickPlaceEnvCfg",
         "robomimic_bc_cfg_entry_point": os.path.join(agents.__path__[0], "robomimic/bc_rnn_low_dim.json"),
         "robomimic_bc_simple_cfg_entry_point": os.path.join(agents.__path__[0], "robomimic/bc.json"),
     },

@@ -13,6 +13,9 @@ from .franka_stack_ik_rel_mimic_env_cfg import FrankaCubeStackIKRelMimicEnvCfg
 from .Vial_ik_rel_blueprint_mimic_env_cfg import VialIKRelBlueprintMimicEnvCfg
 from .Vial_ik_rel_mimic_env import VialIKRelMimicEnv
 from .Vial_ik_rel_mimic_env_cfg import VialIKRelMimicEnvCfg
+from .beaker_blueprint_mimic_env_cfg import BeakerBlueprintMimicEnvCfg
+from .beaker_mimic_env_cfg import BeakerMimicEnvCfg
+from .beaker_mimic_env import BeakerMimicEnv
 ##
 # Inverse Kinematics - Relative Pose Control
 ##
@@ -35,6 +38,15 @@ gym.register(
     disable_env_checker=True,
 )
 
+gym.register(
+    id="Beaker-Mimic-v0",
+    entry_point="isaaclab_mimic.envs:BeakerMimicEnv",
+    kwargs={
+        "env_cfg_entry_point": beaker_mimic_env_cfg.BeakerMimicEnvCfg,
+    },
+    disable_env_checker=True,
+)
+
 # gym.register(
 #     id="Isaac-Stack-Cube-Franka-IK-Rel-Blueprint-Mimic-v0",
 #     entry_point="isaaclab_mimic.envs:FrankaCubeStackIKRelMimicEnv",
@@ -49,6 +61,15 @@ gym.register(
     entry_point="isaaclab_mimic.envs:VialIKRelBlueprintMimicEnvCfg",
     kwargs={
         "env_cfg_entry_point": Vial_ik_rel_blueprint_mimic_env_cfg.VialIKRelBlueprintMimicEnvCfg,
+    },
+    disable_env_checker=True,
+)
+
+gym.register(
+    id="Beaker-Blueprint-Mimic-v0",
+    entry_point="isaaclab_mimic.envs:BeakerBlueprintMimicEnvCfg",
+    kwargs={
+        "env_cfg_entry_point": beaker_blueprint_mimic_env_cfg.BeakerBlueprintMimicEnvCfg,
     },
     disable_env_checker=True,
 )

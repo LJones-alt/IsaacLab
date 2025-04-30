@@ -48,7 +48,7 @@
         "goal_mode": null,
         "cuda": true,
         "batch_size": 100,
-        "num_epochs": 4000,
+        "num_epochs": 8000,
         "seed": 101
     },
     "algo": {

@@ -123,7 +123,7 @@ class CommandsCfg:
         resampling_time_range=(5.0, 5.0),
         debug_vis=True,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
-            pos_x=(0.318, 0.318), pos_y=(-0.218,-0.218), pos_z=(0.02, 0.02), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
+            pos_x=(0.4, 0.4), pos_y=(0,-0), pos_z=(0.3, 0.3), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
         ),
     )
 
@@ -165,21 +165,19 @@ class ObservationsCfg:
     class SubtaskCfg(ObsGroup):
         """Observations for subtask group."""
         ##subtask is grapsed vial
-        grasp = ObsTerm(
-            func=mdp.object_grasped,
-            params={
-                "robot_cfg": SceneEntityCfg("robot"),
-                "ee_frame_cfg": SceneEntityCfg("ee_frame"),
-                "object_cfg": SceneEntityCfg("object"),
-            },
+        reach = ObsTerm(
+            func=mdp.object_ee_distance, 
+            params={"std": 0.1}, 
         )
-        lift = ObsTerm(
-            func=mdp.object_is_lifted,
-            params={
-                "minimal_height": 0.05,
-                "object_cfg": SceneEntityCfg("object"),
-            },
-        )
+        # grasp = ObsTerm(
+        #     func=mdp.object_grasped,
+        #     params={
+        #         "robot_cfg": SceneEntityCfg("robot"),
+        #         "ee_frame_cfg": SceneEntityCfg("ee_frame"),
+        #         "object_cfg": SceneEntityCfg("object"),
+        #     },
+        # )
+        
         
         def __post_init__(self):
             self.enable_corruption = False
@@ -216,7 +214,7 @@ class EventCfg:
         func=mdp.reset_root_state_uniform,
         mode="reset",
         params={
-            "pose_range": {"x": (0.2,0.2), "y": (0.0, 0.0), "z": (0.1, 0.2)},
+            "pose_range": {"x": (0.2,0.2), "y": (0.0, 0.0), "z": (0.04, 0.05)},
             "velocity_range": {},
             "asset_cfg": SceneEntityCfg("object", body_names="Object"),
         },
@@ -227,9 +225,9 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.1}, weight=15.0)
+    reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.01}, weight=15.0)
 
-    lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.04}, weight=15.0)
+    lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.05}, weight=15.0)
 
     object_goal_tracking = RewTerm(
         func=mdp.object_goal_distance,
@@ -263,8 +261,8 @@ class TerminationsCfg:
         func=mdp.root_height_below_minimum, params={"minimum_height": -0.05, "asset_cfg": SceneEntityCfg("object")}
     )
     ## simplified to lift object 
-    success = DoneTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.04})
-
+    success = DoneTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.15})
+    #success = DoneTerm(func=mdp.object_reached_goal)
 
 @configclass
 class CurriculumCfg:
